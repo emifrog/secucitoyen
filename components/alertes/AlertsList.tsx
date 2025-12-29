@@ -9,7 +9,7 @@ import { getSavedDepartment } from '@/lib/geolocation';
 interface UnifiedAlert {
   id: string;
   type: string;
-  category: 'meteo' | 'pollution' | 'incendie' | 'sanitaire';
+  category: 'meteo' | 'pollution' | 'incendie' | 'inondation' | 'sanitaire';
   level: 'vert' | 'jaune' | 'orange' | 'rouge';
   title: string;
   description: string;
@@ -27,6 +27,7 @@ const categoryLabels: Record<string, string> = {
   meteo: 'Météo',
   pollution: 'Pollution',
   incendie: 'Incendie',
+  inondation: 'Crues',
   sanitaire: 'Santé',
 };
 
@@ -34,13 +35,14 @@ const categoryColors: Record<string, string> = {
   meteo: 'bg-blue-500',
   pollution: 'bg-purple-500',
   incendie: 'bg-orange-600',
+  inondation: 'bg-cyan-600',
   sanitaire: 'bg-green-500',
 };
 
 export default function AlertsList() {
   const [alerts, setAlerts] = useState<UnifiedAlert[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'orange' | 'rouge' | 'meteo' | 'pollution' | 'incendie'>('all');
+  const [filter, setFilter] = useState<'all' | 'orange' | 'rouge' | 'meteo' | 'pollution' | 'incendie' | 'inondation'>('all');
   const [sources, setSources] = useState<string[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>('');
 
@@ -85,6 +87,7 @@ export default function AlertsList() {
     meteo: alerts.filter((a) => a.category === 'meteo').length,
     pollution: alerts.filter((a) => a.category === 'pollution').length,
     incendie: alerts.filter((a) => a.category === 'incendie').length,
+    inondation: alerts.filter((a) => a.category === 'inondation').length,
   };
 
   if (loading) {
@@ -136,6 +139,12 @@ export default function AlertsList() {
                 <p className="text-xs text-white/70">Incendie: {categoryCount.incendie}</p>
               </div>
             )}
+            {categoryCount.inondation > 0 && (
+              <div className="text-center">
+                <span className="text-lg">🌊</span>
+                <p className="text-xs text-white/70">Crues: {categoryCount.inondation}</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -160,6 +169,7 @@ export default function AlertsList() {
           { key: 'meteo', label: 'Météo', icon: '⛈️' },
           { key: 'pollution', label: 'Air', icon: '😷' },
           { key: 'incendie', label: 'Feux', icon: '🔥' },
+          { key: 'inondation', label: 'Crues', icon: '🌊' },
         ].map(({ key, label, icon }) => (
           <button
             key={key}
