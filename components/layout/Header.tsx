@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import ThemeToggle from './ThemeToggle';
 import GlobalSearch from './GlobalSearch';
 import LanguageSelector from './LanguageSelector';
@@ -12,7 +13,7 @@ export default function Header() {
   return (
     <>
       <header className="bg-primary dark:bg-slate-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-primary dark:border-slate-700">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
           <div className="w-9 h-9 relative">
             {/* Logo bouclier avec croix */}
             <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -31,7 +32,7 @@ export default function Header() {
             </svg>
           </div>
           <h1 className="text-lg font-semibold">SécuCitoyen</h1>
-        </div>
+        </Link>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setSearchOpen(true)}
@@ -95,7 +96,28 @@ export default function Header() {
               <span>🔔</span>
               <span className="text-gray-800 dark:text-gray-200">Alertes</span>
             </a>
+            <a
+              href="/defibrillateurs"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>🫀</span>
+              <span className="text-gray-800 dark:text-gray-200">Défibrillateurs</span>
+            </a>
+            <a
+              href="/conseils-saison"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>🗓️</span>
+              <span className="text-gray-800 dark:text-gray-200">Conseils saisonniers</span>
+            </a>
             <div className="border-t border-gray-200 dark:border-slate-700 my-2" />
+            <a
+              href="/contact"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>✉️</span>
+              <span className="text-gray-800 dark:text-gray-200">Contact</span>
+            </a>
             <a
               href="tel:112"
               className="flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
