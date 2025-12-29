@@ -41,9 +41,11 @@ Application Progressive Web App (PWA) de sécurité citoyenne pour la France. Pr
 - **Géolocalisation automatique** : Détection du département via GPS
 - **Vigilances Météo-France** : Vent, orages, pluie, neige, canicule, grand-froid, avalanches, crues, vagues-submersion
 - **Qualité de l'air** : Indice européen AQI, alertes pollution (PM10, PM2.5, NO2, O3)
+- **Vigicrues** : Vigilance crues des cours d'eau en temps réel
+- **Météo des forêts** : Risque incendie via calcul IFM (Indice Feu Météo)
 - **Risque incendie** : Calcul FWI basé sur température, humidité et vent
 - **Notifications push** : Alertes orange/rouge en temps réel
-- **Filtres** : Par niveau (orange, rouge) ou catégorie (météo, pollution, incendie)
+- **Filtres** : Par niveau (orange, rouge) ou catégorie (météo, pollution, incendie, crues)
 - Rafraîchissement automatique toutes les 5 minutes
 
 ### Multi-langue
@@ -96,7 +98,9 @@ secucitoyen/
 │   │   ├── alerts/           # API unifiée (toutes alertes)
 │   │   ├── vigilance/        # API Météo-France
 │   │   ├── air-quality/      # API qualité de l'air
-│   │   ├── fire-risk/        # API risque incendie
+│   │   ├── vigicrues/        # API vigilance crues
+│   │   ├── meteo-forets/     # API risque incendie forêt (IFM)
+│   │   ├── fire-risk/        # API risque incendie (FWI)
 │   │   ├── defibrillateurs/  # API DAE à proximité
 │   │   └── widget/           # API widget PWA
 │   ├── alertes/              # Page alertes
@@ -185,13 +189,64 @@ GET /api/air-quality?dept=75
 
 Indice européen AQI via Open-Meteo.
 
-### API Risque Incendie
+### API Vigicrues
+
+```
+GET /api/vigicrues?dept=30
+```
+
+Vigilance crues en temps réel depuis le service officiel Vigicrues.
+
+Réponse :
+```json
+{
+  "alerts": [
+    {
+      "id": "vigicrues-30A",
+      "troncon": "Le Gardon à Anduze",
+      "niveau": "orange",
+      "cours_eau": "Le Gardon",
+      "departement": "Gard",
+      "departementCode": "30"
+    }
+  ],
+  "count": 2,
+  "source": "Vigicrues - Ministère de la Transition écologique"
+}
+```
+
+### API Météo des Forêts
+
+```
+GET /api/meteo-forets?dept=83
+```
+
+Risque incendie forêt calculé via l'Indice Feu Météo (IFM). Surveille 16 départements à risque (Var, Bouches-du-Rhône, Corse, etc.).
+
+Réponse :
+```json
+{
+  "alerts": [
+    {
+      "id": "foret-83",
+      "departement": "Var",
+      "departementCode": "83",
+      "niveau": "eleve",
+      "ifm": 72,
+      "description": "Risque élevé de feu de forêt"
+    }
+  ],
+  "source": "Météo des forêts (calcul IFM)"
+}
+```
+
+### API Risque Incendie (FWI)
 
 ```
 GET /api/fire-risk?dept=13
 ```
 
-Calcul Fire Weather Index (FWI) basé sur les données météo.
+Calcul Fire Weather Index (FWI) basé sur les données météo (backup).
 
 ### API Défibrillateurs
 
@@ -254,7 +309,9 @@ Les notifications push alertent l'utilisateur en cas de vigilance orange ou roug
 | Type | Source | Fréquence |
 |------|--------|-----------|
 | Vigilance météo | Météo-France via Opendatasoft | 5 min |
+| Vigilance crues | Vigicrues (Ministère Transition écologique) | 5 min |
 | Qualité de l'air | Open-Meteo Air Quality | 30 min |
+| Risque incendie forêt | Météo des forêts (calcul IFM) | 30 min |
 | Risque incendie | Calcul FWI (Open-Meteo) | 1 heure |
 | Défibrillateurs | OpenDataSoft - DAE France | 1 heure |
 
@@ -267,6 +324,7 @@ Les notifications push alertent l'utilisateur en cas de vigilance orange ou roug
 | Thématiques saisonnières | 18 |
 | Numéros d'urgence | 12+ |
 | Langues supportées | 3 |
+| Sources d'alertes | 5 |
 
 ## Licence
 
