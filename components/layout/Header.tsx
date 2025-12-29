@@ -13,8 +13,22 @@ export default function Header() {
     <>
       <header className="bg-primary dark:bg-slate-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-primary dark:border-slate-700">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center font-bold text-sm">
-            SC
+          <div className="w-9 h-9 relative">
+            {/* Logo bouclier avec croix */}
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              <defs>
+                <linearGradient id="headerShield" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#F97316"/>
+                  <stop offset="100%" stopColor="#EA580C"/>
+                </linearGradient>
+              </defs>
+              <path
+                d="M18 3C18 3 30 7 30 7C31 7.3 32 8.3 32 9.5L32 18C32 24 26 30 18 34C10 30 4 24 4 18L4 9.5C4 8.3 5 7.3 6 7C6 7 18 3 18 3Z"
+                fill="url(#headerShield)"
+              />
+              <rect x="15" y="10" width="6" height="16" rx="1.5" fill="white"/>
+              <rect x="10" y="15" width="16" height="6" rx="1.5" fill="white"/>
+            </svg>
           </div>
           <h1 className="text-lg font-semibold">SécuCitoyen</h1>
         </div>

@@ -48,9 +48,23 @@ export default function HomePage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <div className="relative">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center font-bold text-sm">
-                SC
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 relative">
+                {/* Logo bouclier avec croix */}
+                <svg viewBox="0 0 36 36" className="w-full h-full drop-shadow-lg">
+                  <defs>
+                    <linearGradient id="homeShield" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#F97316"/>
+                      <stop offset="100%" stopColor="#EA580C"/>
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M18 3C18 3 30 7 30 7C31 7.3 32 8.3 32 9.5L32 18C32 24 26 30 18 34C10 30 4 24 4 18L4 9.5C4 8.3 5 7.3 6 7C6 7 18 3 18 3Z"
+                    fill="url(#homeShield)"
+                  />
+                  <rect x="15" y="10" width="6" height="16" rx="1.5" fill="white"/>
+                  <rect x="10" y="15" width="16" height="6" rx="1.5" fill="white"/>
+                </svg>
               </div>
               <div>
                 <h2 className="text-xl font-bold">SécuCitoyen</h2>
