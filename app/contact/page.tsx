@@ -176,33 +176,15 @@ export default function ContactPage() {
             <div>
               <p className="font-medium text-gray-800 dark:text-gray-100">Email</p>
               <a
-                href="mailto:contact@secucitoyen.fr"
+                href="mailto:xav.robart@gmail.com"
                 className="text-sm text-primary dark:text-blue-400 hover:underline"
               >
-                contact@secucitoyen.fr
+                xav.robart@gmail.com
               </a>
             </div>
           </div>
         </Card>
 
-        <Card>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center text-2xl">
-              🐙
-            </div>
-            <div>
-              <p className="font-medium text-gray-800 dark:text-gray-100">GitHub</p>
-              <a
-                href="https://github.com/secucitoyen"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary dark:text-blue-400 hover:underline"
-              >
-                Signaler un bug ou contribuer
-              </a>
-            </div>
-          </div>
-        </Card>
       </section>
 
       {/* Info RGPD */}
