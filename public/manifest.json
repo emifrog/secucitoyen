@@ -1,0 +1,87 @@
+{
+  "name": "SécuCitoyen",
+  "short_name": "SécuCitoyen",
+  "description": "Application de sécurité citoyenne - Prévention, alertes et urgences",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E3A5F",
+  "theme_color": "#1E3A5F",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Appeler le 15 (SAMU)",
+      "short_name": "SAMU 15",
+      "description": "Urgence médicale",
+      "url": "/urgences/15",
+      "icons": [{ "src": "/icons/shortcut-15.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Appeler le 18 (Pompiers)",
+      "short_name": "Pompiers 18",
+      "description": "Incendie et secours",
+      "url": "/urgences/18",
+      "icons": [{ "src": "/icons/shortcut-18.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Appeler le 17 (Police)",
+      "short_name": "Police 17",
+      "description": "Police secours",
+      "url": "/urgences/17",
+      "icons": [{ "src": "/icons/shortcut-17.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Défibrillateurs",
+      "short_name": "DAE",
+      "description": "Trouver un défibrillateur",
+      "url": "/defibrillateurs",
+      "icons": [{ "src": "/icons/shortcut-dae.svg", "sizes": "96x96" }]
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Urgences SécuCitoyen",
+      "short_name": "Urgences",
+      "description": "Accès rapide aux numéros d'urgence",
+      "tag": "emergency",
+      "ms_ac_template": "widget-emergency.json",
+      "data": "/api/widget/emergency",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/widgets/screenshot-emergency.png",
+          "sizes": "600x400",
+          "label": "Widget numéros d'urgence"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/icons/widget-emergency.svg",
+          "sizes": "44x44"
+        }
+      ],
+      "backgrounds": [
+        {
+          "src": "/widgets/background.png",
+          "sizes": "600x400"
+        }
+      ]
+    }
+  ],
+  "categories": ["health", "utilities", "lifestyle"],
+  "lang": "fr-FR",
+  "dir": "ltr"
+}
