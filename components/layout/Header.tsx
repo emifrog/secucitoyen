@@ -119,6 +119,21 @@ export default function Header() {
               <span className="text-gray-800 dark:text-gray-200">Contact</span>
             </a>
             <a
+              href="/mentions-legales"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>📜</span>
+              <span className="text-gray-800 dark:text-gray-200">Mentions légales</span>
+            </a>
+            <a
+              href="/confidentialite"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>🔒</span>
+              <span className="text-gray-800 dark:text-gray-200">Confidentialité</span>
+            </a>
+            <div className="border-t border-gray-200 dark:border-slate-700 my-2" />
+            <a
               href="tel:112"
               className="flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
