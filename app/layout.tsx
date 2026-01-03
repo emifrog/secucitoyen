@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/providers";
 import { I18nProvider } from "@/lib/i18n";
 import EmergencyFab from "@/components/layout/EmergencyFab";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -64,6 +65,7 @@ export default function RootLayout({
               <InstallPrompt />
               <BottomNav />
             </div>
+            <Analytics />
           </I18nProvider>
         </ThemeProvider>
       </body>

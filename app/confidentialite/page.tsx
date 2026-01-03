@@ -227,7 +227,49 @@ export default function ConfidentialitePage() {
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-            10. Sécurité
+            10. Analyse et monitoring
+          </h2>
+          <p className="text-sm leading-relaxed mb-3">
+            Pour améliorer la qualité de l&apos;application, nous utilisons :
+          </p>
+          <ul className="text-sm space-y-3 ml-4 list-disc">
+            <li>
+              <strong>Vercel Analytics</strong> : mesure de performance et statistiques
+              d&apos;usage anonymes (pages vues, temps de chargement). Aucune donnée
+              personnelle n&apos;est collectée. Conforme RGPD sans consentement requis.
+              <a
+                href="https://vercel.com/docs/analytics/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline ml-1"
+              >
+                Politique Vercel →
+              </a>
+            </li>
+            <li>
+              <strong>Sentry</strong> : monitoring des erreurs techniques pour garantir
+              le bon fonctionnement de l&apos;application. Collecte uniquement les
+              informations techniques en cas d&apos;erreur (type d&apos;erreur, navigateur,
+              URL). Aucune donnée personnelle identifiable.
+              <a
+                href="https://sentry.io/privacy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline ml-1"
+              >
+                Politique Sentry →
+              </a>
+            </li>
+          </ul>
+          <p className="text-sm leading-relaxed mt-3 text-gray-500 dark:text-gray-400">
+            Ces outils sont essentiels pour assurer la fiabilité d&apos;une application
+            d&apos;urgence. Ils ne collectent aucune donnée personnelle identifiable.
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
+            11. Sécurité
           </h2>
           <p className="text-sm leading-relaxed">
             L&apos;application utilise le protocole HTTPS pour sécuriser toutes
@@ -238,7 +280,7 @@ export default function ConfidentialitePage() {
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-            11. Modifications
+            12. Modifications
           </h2>
           <p className="text-sm leading-relaxed">
             Cette politique de confidentialité peut être mise à jour. La date
@@ -249,7 +291,7 @@ export default function ConfidentialitePage() {
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-            12. Réclamation
+            13. Réclamation
           </h2>
           <p className="text-sm leading-relaxed">
             Si vous estimez que vos droits ne sont pas respectés, vous pouvez
