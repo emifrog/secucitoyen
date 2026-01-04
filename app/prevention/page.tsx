@@ -10,8 +10,8 @@ export default function PreventionPage() {
     <div className="p-4 space-y-5">
       {/* Header */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Prévention</h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Prévention</h2>
+        <p className="text-gray-600 dark:text-gray-400 text-center">
           Check-lists interactives pour sécuriser votre quotidien.
         </p>
       </section>
