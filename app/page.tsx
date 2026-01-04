@@ -44,7 +44,7 @@ export default function HomePage() {
 
       <div className="px-4 space-y-5">
         {/* Hero Section amélioré */}
-        <section className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-5 text-white relative overflow-hidden">
+        <section className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl mt-3 p-5 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <div className="relative">

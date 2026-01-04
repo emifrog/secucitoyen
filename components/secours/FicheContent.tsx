@@ -3,6 +3,23 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { FicheSecours } from '@/lib/fiches-secours';
+import dynamic from 'next/dynamic';
+
+// Import dynamique des illustrations pour éviter les erreurs SSR
+const MassageCardiaque = dynamic(() => import('./illustrations/MassageCardiaque'), { ssr: false });
+const PLS = dynamic(() => import('./illustrations/PLS'), { ssr: false });
+const Heimlich = dynamic(() => import('./illustrations/Heimlich'), { ssr: false });
+const CompressionHemorragie = dynamic(() => import('./illustrations/CompressionHemorragie'), { ssr: false });
+const Brulure = dynamic(() => import('./illustrations/Brulure'), { ssr: false });
+
+// Mapping des illustrations par ID de fiche
+const illustrationComponents: Record<string, React.ComponentType> = {
+  'arret-cardiaque': MassageCardiaque,
+  'pls': PLS,
+  'etouffement': Heimlich,
+  'hemorragie': CompressionHemorragie,
+  'brulures': Brulure,
+};
 
 interface FicheContentProps {
   fiche: FicheSecours;
@@ -34,6 +51,7 @@ const urgencyConfig = {
 
 export default function FicheContent({ fiche }: FicheContentProps) {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [showIllustration, setShowIllustration] = useState(true);
   const config = urgencyConfig[fiche.urgency];
 
   const toggleStep = (index: number) => {
@@ -44,8 +62,39 @@ export default function FicheContent({ fiche }: FicheContentProps) {
     );
   };
 
+  // Récupérer l'illustration pour cette fiche
+  const IllustrationComponent = illustrationComponents[fiche.id];
+
   return (
     <div className="px-4 space-y-5 mt-4">
+      {/* Illustration animée si disponible */}
+      {IllustrationComponent && showIllustration && (
+        <section className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-4 border border-blue-100 dark:border-slate-600">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <span>🎬</span> Visualisation du geste
+            </h2>
+            <button
+              onClick={() => setShowIllustration(false)}
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              Masquer
+            </button>
+          </div>
+          <IllustrationComponent />
+        </section>
+      )}
+
+      {/* Bouton pour réafficher l'illustration */}
+      {IllustrationComponent && !showIllustration && (
+        <button
+          onClick={() => setShowIllustration(true)}
+          className="w-full py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center justify-center gap-2"
+        >
+          <span>🎬</span> Afficher l&apos;illustration animée
+        </button>
+      )}
+
       {/* Badge urgence */}
       <div className={`${config.bg} text-white px-4 py-3 rounded-xl flex items-center justify-between`}>
         <div>
