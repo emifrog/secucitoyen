@@ -21,12 +21,13 @@
   - [x] Fiches secours (navigation et affichage des étapes)
   - [x] Bouton d'urgence FAB visible sur toutes les pages
 
-**Résultat : 42 tests, 4 suites, 100% passent**
+**Résultat : 78 tests, 8 suites, 100% passent**
 
-**Reste à faire :**
-- [ ] Ecrire des tests de composants (EmergencyFab, GlobalSearch, FavoriteButton)
-- [ ] Tests `lib/i18n.ts` — traductions et détection langue
-- [ ] Configurer la CI (GitHub Actions) pour exécuter les tests à chaque PR
+- [x] Tests de composants : EmergencyFab (5 tests), FavoriteButton (5 tests)
+- [x] Tests `lib/i18n.ts` — traductions et détection langue (10 tests)
+- [x] Tests `lib/global-search.ts` — recherche globale (8 tests)
+- [x] CI GitHub Actions configurée (`.github/workflows/ci.yml`)
+  - TypeScript check + Lint + Tests unitaires + Build
 
 ---
 
@@ -83,12 +84,17 @@
 - [x] Mettre à jour `NotificationPrompt.tsx` pour inscrire via Web Push
 - [x] Mettre à jour `.env.local.example` avec les variables VAPID
 
+- [x] Vercel Cron Job configuré (`vercel.json` + `/api/cron/check-alerts`)
+  - Exécution toutes les 15 minutes
+  - Vérifie les nouvelles alertes orange/rouge
+  - Compare aux dernières envoyées (table `sent_notifications`)
+  - Envoie les push ciblés par département
+  - Nettoyage automatique des entrées > 7 jours
+- [x] Table `sent_notifications` (migration `002_sent_notifications.sql`)
+
 **Reste à faire :**
-- [ ] Configurer un Vercel Cron Job (toutes les 15 min) pour :
-  - Vérifier les nouvelles alertes orange/rouge
-  - Comparer aux dernières alertes envoyées (éviter les doublons)
-  - Envoyer les push par département
-- [ ] Stocker les dernières alertes envoyées dans Supabase (table `sent_notifications`)
+- [ ] Exécuter la migration `002_sent_notifications.sql` dans Supabase
+- [ ] Ajouter `CRON_SECRET` dans les variables d'environnement Vercel
 
 ---
 
