@@ -39,16 +39,25 @@ const categoryColors: Record<string, string> = {
   sanitaire: 'bg-green-500',
 };
 
+interface HealthSource {
+  source: string;
+  status: 'ok' | 'unavailable';
+  failures: number;
+}
+
 export default function AlertsList() {
   const [alerts, setAlerts] = useState<UnifiedAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'orange' | 'rouge' | 'meteo' | 'pollution' | 'incendie' | 'inondation'>('all');
   const [sources, setSources] = useState<string[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [degradedSources, setDegradedSources] = useState<HealthSource[]>([]);
 
   useEffect(() => {
     const loadAlerts = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const savedDept = getSavedDepartment();
         const params = new URLSearchParams();
@@ -60,19 +69,36 @@ export default function AlertsList() {
         setAlerts(data.alerts || []);
         setSources(data.sources || []);
         setLastUpdate(data.updatedAt || new Date().toISOString());
+
+        if (data.error) {
+          setLoadError(data.error);
+        }
       } catch (error) {
         console.error('Erreur chargement alertes:', error);
         setAlerts([]);
-        setSources(['Erreur']);
+        setSources([]);
+        setLoadError('Impossible de charger les alertes. Vérifiez votre connexion.');
       } finally {
         setLoading(false);
       }
     };
 
+    const checkHealth = async () => {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        const unavailable = (data.sources || []).filter((s: HealthSource) => s.status === 'unavailable');
+        setDegradedSources(unavailable);
+      } catch {
+        // Silently ignore health check failures
+      }
+    };
+
     loadAlerts();
+    checkHealth();
 
     // Rafraîchir toutes les 5 minutes
-    const interval = setInterval(loadAlerts, 5 * 60 * 1000);
+    const interval = setInterval(() => { loadAlerts(); checkHealth(); }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -159,6 +185,44 @@ export default function AlertsList() {
           </div>
         )}
       </div>
+
+      {/* Bannière d'erreur */}
+      {loadError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 flex items-start gap-2">
+          <span className="text-red-500 mt-0.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">{loadError}</p>
+            {lastUpdate && (
+              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                Dernières données valides : {new Date(lastUpdate).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sources dégradées */}
+      {degradedSources.length > 0 && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-start gap-2">
+          <span className="text-amber-500 mt-0.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+              {degradedSources.length === 1 ? 'Une source est' : `${degradedSources.length} sources sont`} temporairement indisponible{degradedSources.length > 1 ? 's' : ''}
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              {degradedSources.map((s) => s.source).join(', ')} — les donn\u00e9es affich\u00e9es peuvent \u00eatre incompl\u00e8tes
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Filtres */}
       <div className="flex gap-2 overflow-x-auto pb-1">

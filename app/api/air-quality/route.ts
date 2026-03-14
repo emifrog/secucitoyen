@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 
 // API ATMO France via Open-Meteo (gratuit, sans clé API)
 const AIR_QUALITY_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality';
@@ -125,11 +126,13 @@ export async function GET(request: Request) {
       deptCodeResult = '75';
     }
 
-    const response = await fetch(
+    const response = await fetchWithCircuitBreaker(
+      'open-meteo-air',
       `${AIR_QUALITY_URL}?latitude=${latitude}&longitude=${longitude}&current=european_aqi,pm10,pm2_5,nitrogen_dioxide,ozone`,
       {
         headers: { 'User-Agent': 'SécuCitoyen PWA' },
         next: { revalidate: 1800 },
+        timeout: 10000,
       }
     );
 

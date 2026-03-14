@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 
 // API pour récupérer le risque incendie de forêt (Météo des forêts)
 // Calcul basé sur l'Indice Feu Météo (IFM) via données météo
@@ -116,8 +117,9 @@ export async function GET(request: Request) {
       try {
         const meteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${info.lat}&longitude=${info.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&timezone=Europe/Paris`;
 
-        const response = await fetch(meteoUrl, {
-          next: { revalidate: 1800 }, // Cache 30 minutes
+        const response = await fetchWithCircuitBreaker('open-meteo-forecast', meteoUrl, {
+          next: { revalidate: 1800 },
+          timeout: 10000,
         });
 
         if (!response.ok) continue;

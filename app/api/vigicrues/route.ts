@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 
 // API pour récupérer les vigilances crues depuis Vigicrues
 // Source : https://www.vigicrues.gouv.fr/services/v1.1
@@ -70,11 +71,13 @@ async function fetchVigicruesData(): Promise<VigicrueAlert[]> {
   }
 
   // Récupérer les vigilances crues en GeoJSON (sans cache Next.js car > 2Mo)
-  const response = await fetch(
+  const response = await fetchWithCircuitBreaker(
+    'vigicrues',
     'https://www.vigicrues.gouv.fr/services/1/InfoVigiCru.geojson',
     {
       headers: { 'Accept': 'application/json' },
-      cache: 'no-store', // Désactiver le cache Next.js (fichier trop gros)
+      cache: 'no-store',
+      timeout: 15000, // Timeout plus long car fichier ~3Mo
     }
   );
 

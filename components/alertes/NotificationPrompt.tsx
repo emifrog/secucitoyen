@@ -7,7 +7,9 @@ import {
   showNotification,
   getNotificationSettings,
   checkAndNotifyAlerts,
+  subscribeToPush,
 } from '@/lib/notifications';
+import { getSavedDepartment } from '@/lib/geolocation';
 
 type PermissionState = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -45,6 +47,11 @@ export default function NotificationPrompt() {
 
       if (granted) {
         setPermission('granted');
+
+        // Inscrire aux push notifications via Web Push
+        const dept = getSavedDepartment();
+        await subscribeToPush(dept || undefined);
+
         // Envoyer une notification de test
         showNotification('SécuCitoyen activé', {
           body: 'Vous recevrez les alertes de vigilance météo en temps réel.',

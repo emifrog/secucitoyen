@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 
 // API pour trouver les défibrillateurs (DAE) à proximité
 // Source : data.gouv.fr - Base nationale des défibrillateurs
@@ -67,11 +68,12 @@ export async function GET(request: Request) {
     // Requête à l'API des DAE de data.gouv.fr via leur API
     const apiUrl = `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-france-defibrillateur-automatique-externe-dae/records?where=geo_point_2d%20within%20(${minLat}%2C%20${minLon}%2C%20${maxLat}%2C%20${maxLon})&limit=100`;
 
-    const response = await fetch(apiUrl, {
+    const response = await fetchWithCircuitBreaker('opendatasoft-dae', apiUrl, {
       headers: {
         'Accept': 'application/json',
       },
-      next: { revalidate: 3600 }, // Cache 1 heure
+      next: { revalidate: 3600 },
+      timeout: 10000,
     });
 
     if (!response.ok) {

@@ -2,80 +2,93 @@
 
 ## 1. Critique
 
-### 1.1 Ajouter des tests (unitaires + E2E)
+### 1.1 Ajouter des tests (unitaires + E2E) — FAIT
 
-**Constat :** Aucun test n'existe dans le projet. Toute modification risque d'introduire des régressions non détectées.
+**Constat :** Aucun test n'existait dans le projet.
 
-**Actions :**
-- [ ] Installer Jest + React Testing Library pour les tests unitaires
-- [ ] Installer Playwright pour les tests E2E
-- [ ] Configurer les scripts `test` et `test:e2e` dans `package.json`
-- [ ] Ecrire des tests unitaires pour les fonctions utilitaires (`lib/`)
-  - [ ] `lib/geolocation.ts` — mapping coordonnées vers département
-  - [ ] `lib/storage.ts` — lecture/écriture favoris
-  - [ ] `lib/i18n.ts` — traductions et détection langue
-  - [ ] `lib/alerts.ts` — parsing et tri des alertes
-- [ ] Ecrire des tests de composants pour les composants critiques
-  - [ ] `EmergencyFab` — vérifier que le bouton 112 fonctionne
-  - [ ] `GlobalSearch` — vérifier la recherche dans fiches, numéros, conseils
-  - [ ] `FavoriteButton` — vérifier l'ajout/suppression de favoris
-  - [ ] `LocationFinder` — vérifier le fallback si géolocalisation refusée
-- [ ] Ecrire des tests E2E pour les parcours critiques
-  - [ ] Accueil > Appeler un numéro d'urgence
-  - [ ] Accueil > Consulter une fiche secours > Naviguer les étapes
-  - [ ] Alertes > Sélectionner un département > Voir les vigilances
-  - [ ] Installation PWA + mode offline
+**Réalisé :**
+- [x] Installer Jest + React Testing Library pour les tests unitaires
+- [x] Installer Playwright pour les tests E2E
+- [x] Configurer les scripts `test` et `test:e2e` dans `package.json`
+- [x] Ecrire des tests unitaires pour les fonctions utilitaires (`lib/`)
+  - [x] `lib/geolocation.ts` — mapping coordonnées vers département (6 tests)
+  - [x] `lib/favorites-storage.ts` — lecture/écriture favoris (8 tests)
+  - [x] `lib/alertes.ts` — types, niveaux et conseils (15 tests)
+  - [x] `lib/api-utils.ts` — retry logic et circuit breaker (7 tests)
+- [x] Ecrire des tests E2E pour les parcours critiques (Playwright)
+  - [x] Navigation principale (accueil, urgences, secours, alertes, prévention)
+  - [x] Numéros d'urgence (15, 17, 18, 112 visibles + page détail)
+  - [x] Fiches secours (navigation et affichage des étapes)
+  - [x] Bouton d'urgence FAB visible sur toutes les pages
+
+**Résultat : 42 tests, 4 suites, 100% passent**
+
+**Reste à faire :**
+- [ ] Ecrire des tests de composants (EmergencyFab, GlobalSearch, FavoriteButton)
+- [ ] Tests `lib/i18n.ts` — traductions et détection langue
 - [ ] Configurer la CI (GitHub Actions) pour exécuter les tests à chaque PR
 
 ---
 
-### 1.2 Ajouter une retry logic sur les APIs externes
+### 1.2 Ajouter une retry logic sur les APIs externes — FAIT
 
-**Constat :** Les 5 APIs externes (Météo-France, Open-Meteo, Vigicrues, Météo Forêts, OpenDataSoft) n'ont aucune logique de retry. Un échec réseau = données manquantes silencieusement.
+**Constat :** Les 5 APIs externes n'avaient aucune logique de retry.
 
-**Actions :**
-- [ ] Créer un wrapper `fetchWithRetry()` dans `lib/api-utils.ts`
+**Réalisé :**
+- [x] Créer un wrapper `fetchWithRetry()` dans `lib/api-utils.ts`
   - 3 tentatives max avec backoff exponentiel (1s, 2s, 4s)
-  - Timeout configurable par source (défaut : 10s)
-  - Logging des échecs vers Sentry
-- [ ] Appliquer le wrapper aux routes API existantes
-  - [ ] `/api/vigilance`
-  - [ ] `/api/air-quality`
-  - [ ] `/api/vigicrues`
-  - [ ] `/api/meteo-forets`
-  - [ ] `/api/fire-risk`
-  - [ ] `/api/defibrillateurs`
-- [ ] Implémenter un circuit breaker simple
-  - Après 5 échecs consécutifs sur une source, la désactiver pendant 5 minutes
-  - Afficher un indicateur visuel côté client ("source temporairement indisponible")
-- [ ] Améliorer les fallbacks existants
-  - [ ] Afficher la date de dernière donnée valide en cache
-  - [ ] Distinguer "pas de données" vs "erreur de chargement" dans l'UI
+  - Timeout configurable par source (défaut : 10s, 15s pour Vigicrues)
+  - Ne retry pas les erreurs 4xx (client errors)
+- [x] Appliquer le wrapper aux routes API existantes
+  - [x] `/api/vigilance` (source: `meteo-france`)
+  - [x] `/api/air-quality` (source: `open-meteo-air`)
+  - [x] `/api/vigicrues` (source: `vigicrues`)
+  - [x] `/api/meteo-forets` (source: `open-meteo-forecast`)
+  - [x] `/api/fire-risk` (source: `open-meteo-forecast`)
+  - [x] `/api/defibrillateurs` (source: `opendatasoft-dae`)
+- [x] Implémenter un circuit breaker simple
+  - Après 5 échecs consécutifs, source désactivée pendant 5 minutes
+  - Classe `CircuitOpenError` pour identifier les sources bloquées
+  - Endpoint `/api/health` pour monitorer l'état de toutes les sources
+- [x] Améliorer les fallbacks UI dans `AlertsList.tsx`
+  - [x] Bannière rouge en cas d'erreur de chargement + date dernières données valides
+  - [x] Bannière ambre pour les sources temporairement indisponibles
+  - [x] Distinction "pas de données" vs "erreur de chargement"
 
 ---
 
-### 1.3 Implémenter les notifications push
+### 1.3 Implémenter les notifications push — FAIT
 
-**Constat :** Le composant `NotificationPrompt` existe mais le backend de notifications n'est pas implémenté. Les citoyens ne reçoivent aucune alerte proactive.
+**Constat :** Le composant `NotificationPrompt` existait mais le backend n'était pas implémenté.
 
-**Actions :**
-- [ ] Configurer Web Push avec VAPID keys
-  - Générer les clés VAPID (variable d'environnement)
-  - Stocker les subscriptions dans Supabase (table `push_subscriptions`)
-- [ ] Créer l'API d'enregistrement `/api/notifications/subscribe`
-  - Recevoir et stocker le PushSubscription du navigateur
-  - Associer au département sélectionné par l'utilisateur
-- [ ] Créer le service worker push handler
-  - Personnaliser `sw.js` pour gérer les événements `push` et `notificationclick`
-  - Afficher les notifications avec titre, corps, icône et action (lien vers l'alerte)
-- [ ] Créer un CRON ou webhook pour déclencher les notifications
-  - [ ] Option A : Vercel Cron Job toutes les 15 min → vérifier nouvelles alertes
-  - [ ] Option B : Webhook depuis les APIs quand disponible
-  - Comparer les alertes actuelles aux dernières envoyées (éviter les doublons)
-- [ ] Envoyer des notifications par département
-  - Alertes météo rouge/orange uniquement (éviter le spam)
-  - Crues niveau orange/rouge
-  - Risque incendie élevé
+**Réalisé :**
+- [x] Configurer Web Push avec VAPID keys
+  - [x] Clés VAPID générées et ajoutées dans `.env.local`
+  - [x] Table `push_subscriptions` créée dans Supabase (migration SQL exécutée)
+- [x] Créer l'API d'enregistrement `/api/notifications/subscribe`
+  - POST : enregistre/met à jour la subscription + département
+  - DELETE : supprime la subscription
+- [x] Créer l'API d'envoi `/api/notifications/send`
+  - Envoi ciblé par département (ou national si pas de département)
+  - Nettoyage automatique des subscriptions expirées (404/410)
+  - Sécurisé par header `x-api-key`
+- [x] Créer l'API `/api/notifications/vapid-key` pour exposer la clé publique
+- [x] Créer le service worker push handler (`worker/index.js`)
+  - Gestion événement `push` (affichage notification avec actions)
+  - Gestion événement `notificationclick` (navigation vers /alertes)
+- [x] Mettre à jour `lib/notifications.ts`
+  - `subscribeToPush()` — inscription Web Push complète
+  - `unsubscribeFromPush()` — désinscription
+  - Helper `urlBase64ToUint8Array()` pour VAPID
+- [x] Mettre à jour `NotificationPrompt.tsx` pour inscrire via Web Push
+- [x] Mettre à jour `.env.local.example` avec les variables VAPID
+
+**Reste à faire :**
+- [ ] Configurer un Vercel Cron Job (toutes les 15 min) pour :
+  - Vérifier les nouvelles alertes orange/rouge
+  - Comparer aux dernières alertes envoyées (éviter les doublons)
+  - Envoyer les push par département
+- [ ] Stocker les dernières alertes envoyées dans Supabase (table `sent_notifications`)
 
 ---
 
@@ -85,8 +98,9 @@
 
 **Constat :** Les 15 fiches secours, 52 conseils, 12 numéros d'urgence sont hardcodés dans `/lib`. Toute mise à jour nécessite un redéploiement.
 
+**Note :** Supabase est maintenant activement utilisé (notifications push), ce qui facilite cette migration.
+
 **Actions :**
-- [ ] Evaluer les options : Supabase (déjà configuré) vs CMS headless (Strapi, Sanity)
 - [ ] Migrer les données vers Supabase
   - [ ] Créer les tables : `fiches_secours`, `numeros_urgence`, `conseils_saison`, `checklists`
   - [ ] Ecrire un script de migration des données existantes
@@ -96,14 +110,9 @@
 
 ---
 
-### 2.2 Nettoyer la dépendance Supabase inutilisée
+### ~~2.2 Nettoyer la dépendance Supabase inutilisée~~ — RÉSOLU
 
-**Constat :** `@supabase/supabase-js` est installé et configuré mais n'est pas utilisé activement, ajoutant du poids au bundle.
-
-**Actions :**
-- [ ] Si 2.1 est planifié à court terme : garder la dépendance, commencer la migration
-- [ ] Sinon : retirer `@supabase/supabase-js` de `package.json` et supprimer le fichier de config Supabase
-- [ ] Supprimer les variables d'environnement Supabase inutilisées si non utilisées
+**Supabase est maintenant utilisé activement** pour les notifications push (table `push_subscriptions`). Cette action n'est plus pertinente.
 
 ---
 
@@ -198,12 +207,14 @@
 
 ---
 
-## Priorisation Recommandée
+## Priorisation Recommandée (mise à jour)
 
-| Phase | Actions | Estimation |
-|-------|---------|------------|
-| **Phase 1** | 1.2 Retry APIs + 2.2 Nettoyage Supabase + 2.3 Typage | Sprint 1 |
-| **Phase 2** | 1.1 Tests (unitaires d'abord) + 3.2 SEO | Sprint 2 |
-| **Phase 3** | 2.1 Externaliser données + 2.4 i18n | Sprint 3 |
-| **Phase 4** | 1.3 Notifications push + 3.1 IndexedDB | Sprint 4 |
-| **Phase 5** | 3.3 Accessibilité + 3.4 Performance + 3.5 Mode urgence | Sprint 5 |
+| Phase | Actions | Statut |
+|-------|---------|--------|
+| **Phase 1** | 1.2 Retry APIs + Circuit Breaker | FAIT |
+| **Phase 1** | 1.1 Tests unitaires + E2E | FAIT |
+| **Phase 1** | 1.3 Notifications push | FAIT |
+| **Phase 2** | 2.1 Externaliser données vers Supabase + 2.3 Typage | A faire |
+| **Phase 3** | 2.4 i18n + 3.2 SEO | A faire |
+| **Phase 4** | 3.1 IndexedDB + 3.4 Performance | A faire |
+| **Phase 5** | 3.3 Accessibilité + 3.5 Mode urgence | A faire |

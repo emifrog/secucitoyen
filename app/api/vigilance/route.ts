@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Alert, AlertLevel, AlertType, alertTypes, getAdviceForAlert } from '@/lib/alertes';
+import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 
 // API Opendatasoft - Données officielles Météo-France par département
 const VIGILANCE_DEPT_URL = 'https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/weatherref-france-vigilance-meteo-departement/records';
@@ -94,11 +95,12 @@ export async function GET(request: Request) {
       apiUrl += ` AND domain_id='${deptCode}'`;
     }
 
-    const response = await fetch(apiUrl, {
+    const response = await fetchWithCircuitBreaker('meteo-france', apiUrl, {
       headers: {
         'User-Agent': 'SécuCitoyen PWA',
       },
       next: { revalidate: 300 },
+      timeout: 10000,
     });
 
     if (!response.ok) {

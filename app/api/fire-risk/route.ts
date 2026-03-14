@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 
 // Calcul du risque d'incendie basé sur les conditions météo
 // Utilise Fire Weather Index (FWI) via Open-Meteo
@@ -140,9 +141,10 @@ export async function GET(request: Request) {
         });
       }
 
-      const response = await fetch(
+      const response = await fetchWithCircuitBreaker(
+        'open-meteo-forecast',
         `${WEATHER_URL}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: 3600 }, timeout: 10000 }
       );
 
       if (response.ok) {
@@ -176,9 +178,10 @@ export async function GET(request: Request) {
       // Vérifier tous les départements à risque
       for (const [code, dept] of Object.entries(highRiskDepartments)) {
         try {
-          const response = await fetch(
+          const response = await fetchWithCircuitBreaker(
+            'open-meteo-forecast',
             `${WEATHER_URL}?latitude=${dept.lat}&longitude=${dept.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`,
-            { next: { revalidate: 3600 } }
+            { next: { revalidate: 3600 }, timeout: 10000 }
           );
 
           if (response.ok) {

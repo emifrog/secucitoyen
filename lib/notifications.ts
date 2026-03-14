@@ -101,6 +101,103 @@ export function showNotification(
   }
 }
 
+// --- Web Push Subscription ---
+
+/**
+ * Convertit une clé VAPID en Uint8Array pour l'API Push
+ */
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+/**
+ * Inscrit le navigateur aux notifications push via Web Push API.
+ * Envoie la subscription au serveur pour stockage.
+ */
+export async function subscribeToPush(departmentCode?: string): Promise<boolean> {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Push notifications non supportées');
+      return false;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+
+    // Vérifier si déjà inscrit
+    const existingSubscription = await registration.pushManager.getSubscription();
+    if (existingSubscription) {
+      // Mettre à jour le département côté serveur
+      await sendSubscriptionToServer(existingSubscription, departmentCode);
+      return true;
+    }
+
+    // Récupérer la clé VAPID publique
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      console.warn('VAPID public key non configurée');
+      return false;
+    }
+
+    // S'inscrire aux push
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
+    });
+
+    // Envoyer la subscription au serveur
+    await sendSubscriptionToServer(subscription, departmentCode);
+    return true;
+  } catch (error) {
+    console.error('Erreur inscription push:', error);
+    return false;
+  }
+}
+
+/**
+ * Désinscrit des notifications push.
+ */
+export async function unsubscribeFromPush(): Promise<void> {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+
+    if (subscription) {
+      // Supprimer côté serveur
+      await fetch('/api/notifications/subscribe', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subscription.endpoint }),
+      });
+
+      // Supprimer côté navigateur
+      await subscription.unsubscribe();
+    }
+  } catch (error) {
+    console.error('Erreur désinscription push:', error);
+  }
+}
+
+async function sendSubscriptionToServer(
+  subscription: PushSubscription,
+  departmentCode?: string
+): Promise<void> {
+  await fetch('/api/notifications/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subscription: subscription.toJSON(),
+      departmentCode,
+    }),
+  });
+}
+
 // Notifications pour les alertes
 export function showAlertNotification(
   level: 'jaune' | 'orange' | 'rouge',
