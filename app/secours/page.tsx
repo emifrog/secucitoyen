@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card } from '@/components/ui';
 import { getFichesSummary } from '@/lib/fiches-secours';
+
+export const metadata: Metadata = {
+  title: 'Premiers secours',
+  description: 'Fiches de premiers secours : arrêt cardiaque, étouffement, hémorragie, brûlures, PLS et plus. Gestes qui sauvent accessibles hors-ligne.',
+};
 
 const urgencyConfig = {
   critical: {

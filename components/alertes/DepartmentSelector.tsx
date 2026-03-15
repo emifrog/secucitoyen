@@ -123,7 +123,7 @@ export default function DepartmentSelector() {
       </div>
 
       {locationError && (
-        <div className="mb-3 p-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm rounded-lg">
+        <div role="alert" className="mb-3 p-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm rounded-lg">
           {locationError}
         </div>
       )}

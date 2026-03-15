@@ -1,4 +1,9 @@
 import withPWA from 'next-pwa';
+import withBundleAnalyzer from '@next/bundle-analyzer';
+
+const analyzeBundles = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const pwaConfig = withPWA({
   dest: 'public',
@@ -63,4 +68,4 @@ const pwaConfig = withPWA({
 /** @type {import('next').NextConfig} */
 const nextConfig = {};
 
-export default pwaConfig(nextConfig);
+export default analyzeBundles(pwaConfig(nextConfig));

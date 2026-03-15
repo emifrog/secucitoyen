@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card } from '@/components/ui';
 import { getChecklistsSummary } from '@/lib/checklists-prevention';
+
+export const metadata: Metadata = {
+  title: 'Prévention',
+  description: 'Check-lists de prévention : sécurité domicile, kit d\'urgence, sécurité routière, cybersécurité et risques naturels.',
+};
 import OverallProgress from '@/components/prevention/OverallProgress';
 
 export default function PreventionPage() {

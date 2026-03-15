@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import AlertsList from '@/components/alertes/AlertsList';
+
+export const metadata: Metadata = {
+  title: 'Alertes',
+  description: 'Vigilances météo, qualité de l\'air, crues et risques incendie en temps réel pour votre département.',
+};
 import DepartmentSelector from '@/components/alertes/DepartmentSelector';
 import VigilanceMap from '@/components/alertes/VigilanceMap';
 import NotificationPrompt from '@/components/alertes/NotificationPrompt';

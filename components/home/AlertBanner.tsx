@@ -102,7 +102,7 @@ export default function AlertBanner() {
   const config = severityConfig[currentAlert.level] || severityConfig.jaune;
 
   return (
-    <div className={`${config.bg} text-white px-4 py-3`}>
+    <div role="alert" aria-live="polite" className={`${config.bg} text-white px-4 py-3`}>
       <Link href="/alertes" className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-lg flex-shrink-0">{currentAlert.icon || config.icon}</span>

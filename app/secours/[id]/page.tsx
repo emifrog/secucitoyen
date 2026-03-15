@@ -18,8 +18,13 @@ export function generateMetadata({ params }: PageProps) {
   if (!fiche) return { title: 'Fiche non trouvée' };
 
   return {
-    title: `${fiche.title} - SécuCitoyen`,
+    title: fiche.title,
     description: fiche.shortDescription,
+    openGraph: {
+      title: `${fiche.title} - Premiers secours`,
+      description: fiche.shortDescription,
+      type: 'article',
+    },
   };
 }
 
@@ -30,8 +35,25 @@ export default function FichePage({ params }: PageProps) {
     notFound();
   }
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: fiche.title,
+    description: fiche.shortDescription,
+    step: fiche.steps.map((step, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: step.title,
+      text: step.description,
+    })),
+  };
+
   return (
     <div className="pb-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header fixe */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
         <div className="flex items-center gap-3">

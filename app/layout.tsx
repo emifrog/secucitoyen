@@ -11,9 +11,26 @@ import { Analytics } from "@vercel/analytics/react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SécuCitoyen",
-  description: "Application de sécurité citoyenne - Prévention, alertes et urgences",
+  title: {
+    default: "SécuCitoyen - Sécurité citoyenne",
+    template: "%s | SécuCitoyen",
+  },
+  description: "Numéros d'urgence, premiers secours, alertes météo et prévention. Tout pour votre sécurité au quotidien, accessible hors-ligne.",
   manifest: "/manifest.json",
+  metadataBase: new URL("https://secucitoyen.vercel.app"),
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "SécuCitoyen",
+    title: "SécuCitoyen - Sécurité citoyenne",
+    description: "Numéros d'urgence, premiers secours, alertes météo et prévention. Tout pour votre sécurité au quotidien.",
+    images: [{ url: "/icons/icon-512x512.svg", width: 512, height: 512, alt: "SécuCitoyen" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "SécuCitoyen",
+    description: "Numéros d'urgence, premiers secours, alertes et prévention.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
