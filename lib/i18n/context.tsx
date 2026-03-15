@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Locale, Translations, getTranslation } from './translations';
+import { Locale, Translations, getTranslation, supportedLocales } from './translations';
 
 interface I18nContextType {
   locale: Locale;
@@ -20,13 +20,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Récupérer la langue sauvegardée ou détecter la langue du navigateur
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (saved && ['fr', 'en', 'it'].includes(saved)) {
+    if (saved && supportedLocales.includes(saved)) {
       setLocaleState(saved);
     } else {
       // Détecter la langue du navigateur
-      const browserLang = navigator.language.split('-')[0];
-      if (browserLang === 'en' || browserLang === 'it') {
-        setLocaleState(browserLang as Locale);
+      const browserLang = navigator.language.split('-')[0] as Locale;
+      if (supportedLocales.includes(browserLang)) {
+        setLocaleState(browserLang);
       }
     }
     setIsHydrated(true);
@@ -36,7 +36,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLocaleState(newLocale);
     localStorage.setItem(STORAGE_KEY, newLocale);
     // Mettre à jour l'attribut lang du HTML
-    document.documentElement.lang = newLocale === 'fr' ? 'fr' : newLocale === 'it' ? 'it' : 'en';
+    document.documentElement.lang = newLocale;
   };
 
   const t = getTranslation(locale);

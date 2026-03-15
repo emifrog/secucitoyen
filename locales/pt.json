@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Início",
+    "emergencies": "Emergências",
+    "firstAid": "Primeiros socorros",
+    "prevention": "Prevenção",
+    "alerts": "Alertas"
+  },
+  "home": {
+    "welcome": "SécuCitoyen",
+    "subtitle": "A sua segurança no dia a dia",
+    "quickAccess": "Acesso rápido",
+    "callEmergency": "Ligar para emergências",
+    "seasonalTips": "Conselhos sazonais",
+    "viewAll": "Ver tudo"
+  },
+  "emergencies": {
+    "title": "Números de emergência",
+    "subtitle": "Ligue com um toque",
+    "call": "Ligar",
+    "favorites": "Favoritos",
+    "allNumbers": "Todos os números",
+    "shareLocation": "Partilhar localização",
+    "shareLocationDesc": "Enviar a sua posição GPS por SMS",
+    "medical": "Emergência médica",
+    "fire": "Bombeiros e socorro",
+    "police": "Polícia",
+    "european": "Número europeu"
+  },
+  "firstAid": {
+    "title": "Primeiros socorros",
+    "subtitle": "Gestos que salvam vidas",
+    "emergency": "Emergência vital",
+    "callBefore": "Ligue para o 15 ou 112 antes de agir",
+    "steps": "Passos",
+    "doNot": "Não fazer",
+    "whenToCall": "Quando ligar",
+    "whatToSay": "O que dizer",
+    "offline": "Disponível offline",
+    "offlineDesc": "Estas fichas estão guardadas no seu telemóvel",
+    "training": "Formar-se",
+    "trainingDesc": "Estas fichas não substituem uma formação em primeiros socorros"
+  },
+  "prevention": {
+    "title": "Prevenção",
+    "subtitle": "Conselhos e listas de verificação",
+    "checklist": "Lista de verificação",
+    "items": "elementos",
+    "priority": {
+      "high": "Prioridade alta",
+      "medium": "Prioridade média",
+      "low": "Prioridade baixa"
+    }
+  },
+  "alerts": {
+    "title": "Alertas",
+    "subtitle": "Avisos em tempo real",
+    "current": "Alertas em curso",
+    "noAlerts": "Nenhum alerta em curso",
+    "filter": {
+      "all": "Todas",
+      "orange": "Laranja",
+      "red": "Vermelho",
+      "weather": "Meteorologia",
+      "pollution": "Ar",
+      "fire": "Incêndios"
+    },
+    "locate": "Localizar-me",
+    "locating": "A localizar...",
+    "department": "A sua zona",
+    "sources": "Fontes",
+    "updated": "Atualizado"
+  },
+  "defibrillators": {
+    "title": "Desfibrilhadores (DAE)",
+    "subtitle": "Encontre um desfibrilhador próximo",
+    "find": "Encontrar DAE perto de mim",
+    "finding": "A procurar...",
+    "nearest": "Mais próximo",
+    "distance": "Distância",
+    "availability": "Disponibilidade",
+    "access": "Acessibilidade",
+    "directions": "Direções",
+    "howToUse": "Como usar um DAE?",
+    "cardiacArrest": "Em caso de paragem cardíaca",
+    "cardiacArrestSteps": [
+      "Ligue para o 15 ou 112",
+      "Comece as compressões torácicas",
+      "Envie alguém buscar um DAE"
+    ]
+  },
+  "seasonal": {
+    "title": "Conselhos sazonais",
+    "subtitle": "Riscos e prevenção adaptados",
+    "current": "Estação atual",
+    "tips": "conselhos",
+    "otherSeasons": "Outras estações",
+    "seasons": {
+      "winter": "Inverno",
+      "spring": "Primavera",
+      "summer": "Verão",
+      "autumn": "Outono"
+    }
+  },
+  "common": {
+    "back": "Voltar",
+    "search": "Procurar",
+    "searchPlaceholder": "Procurar...",
+    "loading": "A carregar...",
+    "error": "Erro",
+    "retry": "Tentar novamente",
+    "close": "Fechar",
+    "more": "Mais",
+    "install": "Instalar aplicação",
+    "installDesc": "Adicione SécuCitoyen ao ecrã inicial",
+    "later": "Mais tarde",
+    "language": "Idioma"
+  }
+}

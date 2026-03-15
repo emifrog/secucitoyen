@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "emergencies": "Emergencias",
+    "firstAid": "Primeros auxilios",
+    "prevention": "Prevención",
+    "alerts": "Alertas"
+  },
+  "home": {
+    "welcome": "SécuCitoyen",
+    "subtitle": "Tu seguridad diaria",
+    "quickAccess": "Acceso rápido",
+    "callEmergency": "Llamar a emergencias",
+    "seasonalTips": "Consejos de temporada",
+    "viewAll": "Ver todo"
+  },
+  "emergencies": {
+    "title": "Números de emergencia",
+    "subtitle": "Llama con un toque",
+    "call": "Llamar",
+    "favorites": "Favoritos",
+    "allNumbers": "Todos los números",
+    "shareLocation": "Compartir mi ubicación",
+    "shareLocationDesc": "Enviar tu posición GPS por SMS",
+    "medical": "Emergencia médica",
+    "fire": "Bomberos y rescate",
+    "police": "Policía",
+    "european": "Número europeo"
+  },
+  "firstAid": {
+    "title": "Primeros auxilios",
+    "subtitle": "Gestos que salvan vidas",
+    "emergency": "Emergencia vital",
+    "callBefore": "Llama al 15 o 112 antes de actuar",
+    "steps": "Pasos",
+    "doNot": "No hacer",
+    "whenToCall": "Cuándo llamar",
+    "whatToSay": "Qué decir",
+    "offline": "Disponible sin conexión",
+    "offlineDesc": "Estas fichas están guardadas en tu teléfono",
+    "training": "Formarse",
+    "trainingDesc": "Estas fichas no sustituyen una formación en primeros auxilios"
+  },
+  "prevention": {
+    "title": "Prevención",
+    "subtitle": "Consejos y listas de verificación",
+    "checklist": "Lista de verificación",
+    "items": "elementos",
+    "priority": {
+      "high": "Prioridad alta",
+      "medium": "Prioridad media",
+      "low": "Prioridad baja"
+    }
+  },
+  "alerts": {
+    "title": "Alertas",
+    "subtitle": "Avisos en tiempo real",
+    "current": "Alertas en curso",
+    "noAlerts": "Ninguna alerta en curso",
+    "filter": {
+      "all": "Todas",
+      "orange": "Naranja",
+      "red": "Rojo",
+      "weather": "Clima",
+      "pollution": "Aire",
+      "fire": "Incendios"
+    },
+    "locate": "Localizarme",
+    "locating": "Localizando...",
+    "department": "Tu zona",
+    "sources": "Fuentes",
+    "updated": "Actualizado"
+  },
+  "defibrillators": {
+    "title": "Desfibriladores (DEA)",
+    "subtitle": "Encuentra un desfibrilador cercano",
+    "find": "Encontrar DEA cerca de mí",
+    "finding": "Buscando...",
+    "nearest": "Más cercano",
+    "distance": "Distancia",
+    "availability": "Disponibilidad",
+    "access": "Accesibilidad",
+    "directions": "Direcciones",
+    "howToUse": "¿Cómo usar un DEA?",
+    "cardiacArrest": "En caso de paro cardíaco",
+    "cardiacArrestSteps": [
+      "Llama al 15 o 112",
+      "Comienza las compresiones torácicas",
+      "Envía a alguien a buscar un DEA"
+    ]
+  },
+  "seasonal": {
+    "title": "Consejos de temporada",
+    "subtitle": "Riesgos y prevención adaptados",
+    "current": "Temporada actual",
+    "tips": "consejos",
+    "otherSeasons": "Otras temporadas",
+    "seasons": {
+      "winter": "Invierno",
+      "spring": "Primavera",
+      "summer": "Verano",
+      "autumn": "Otoño"
+    }
+  },
+  "common": {
+    "back": "Volver",
+    "search": "Buscar",
+    "searchPlaceholder": "Buscar...",
+    "loading": "Cargando...",
+    "error": "Error",
+    "retry": "Reintentar",
+    "close": "Cerrar",
+    "more": "Más",
+    "install": "Instalar aplicación",
+    "installDesc": "Añade SécuCitoyen a tu pantalla de inicio",
+    "later": "Más tarde",
+    "language": "Idioma"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "emergencies": "Urgences",
+    "firstAid": "Secours",
+    "prevention": "Prévention",
+    "alerts": "Alertes"
+  },
+  "home": {
+    "welcome": "SécuCitoyen",
+    "subtitle": "Votre sécurité au quotidien",
+    "quickAccess": "Accès rapide",
+    "callEmergency": "Appeler les urgences",
+    "seasonalTips": "Conseils de saison",
+    "viewAll": "Voir tout"
+  },
+  "emergencies": {
+    "title": "Numéros d'urgence",
+    "subtitle": "Appelez en un clic",
+    "call": "Appeler",
+    "favorites": "Favoris",
+    "allNumbers": "Tous les numéros",
+    "shareLocation": "Partager ma position",
+    "shareLocationDesc": "Envoyer votre position GPS par SMS",
+    "medical": "Urgence médicale",
+    "fire": "Incendie et secours",
+    "police": "Police secours",
+    "european": "Numéro européen"
+  },
+  "firstAid": {
+    "title": "Premiers secours",
+    "subtitle": "Les gestes qui sauvent",
+    "emergency": "Urgence vitale",
+    "callBefore": "Appelez le 15 ou 112 avant d'agir",
+    "steps": "Étapes",
+    "doNot": "À ne pas faire",
+    "whenToCall": "Quand appeler",
+    "whatToSay": "Quoi dire",
+    "offline": "Disponible hors-ligne",
+    "offlineDesc": "Ces fiches sont sauvegardées sur votre téléphone",
+    "training": "Se former",
+    "trainingDesc": "Ces fiches ne remplacent pas une formation PSC1"
+  },
+  "prevention": {
+    "title": "Prévention",
+    "subtitle": "Conseils et check-lists",
+    "checklist": "Check-list",
+    "items": "éléments",
+    "priority": {
+      "high": "Priorité haute",
+      "medium": "Priorité moyenne",
+      "low": "Priorité basse"
+    }
+  },
+  "alerts": {
+    "title": "Alertes",
+    "subtitle": "Vigilances en temps réel",
+    "current": "Alertes en cours",
+    "noAlerts": "Aucune alerte en cours",
+    "filter": {
+      "all": "Toutes",
+      "orange": "Orange",
+      "red": "Rouge",
+      "weather": "Météo",
+      "pollution": "Air",
+      "fire": "Feux"
+    },
+    "locate": "Me localiser",
+    "locating": "Localisation...",
+    "department": "Votre département",
+    "sources": "Sources",
+    "updated": "Mis à jour"
+  },
+  "defibrillators": {
+    "title": "Défibrillateurs (DAE)",
+    "subtitle": "Trouvez un défibrillateur à proximité",
+    "find": "Trouver les DAE près de moi",
+    "finding": "Recherche en cours...",
+    "nearest": "Le plus proche",
+    "distance": "Distance",
+    "availability": "Disponibilité",
+    "access": "Accessibilité",
+    "directions": "Itinéraire",
+    "howToUse": "Comment utiliser un DAE ?",
+    "cardiacArrest": "En cas d'arrêt cardiaque",
+    "cardiacArrestSteps": [
+      "Appelez le 15 ou 112",
+      "Commencez le massage cardiaque",
+      "Envoyez quelqu'un chercher un DAE"
+    ]
+  },
+  "seasonal": {
+    "title": "Conseils saisonniers",
+    "subtitle": "Risques et prévention adaptés",
+    "current": "Saison actuelle",
+    "tips": "conseils",
+    "otherSeasons": "Autres saisons",
+    "seasons": {
+      "winter": "Hiver",
+      "spring": "Printemps",
+      "summer": "Été",
+      "autumn": "Automne"
+    }
+  },
+  "common": {
+    "back": "Retour",
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher...",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "more": "Plus",
+    "install": "Installer l'application",
+    "installDesc": "Ajoutez SécuCitoyen à votre écran d'accueil",
+    "later": "Plus tard",
+    "language": "Langue"
+  }
+}

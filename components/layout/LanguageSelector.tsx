@@ -6,6 +6,8 @@ import { useI18n, Locale } from '@/lib/i18n';
 const languages: { code: Locale; name: string; flag: string }[] = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
   { code: 'it', name: 'Italiano', flag: '🇮🇹' },
 ];
 

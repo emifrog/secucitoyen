@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
+import type { OpenDataSoftDAEResponse, OpenDataSoftDAERecord } from '@/lib/types/api-responses';
 
 // API pour trouver les défibrillateurs (DAE) à proximité
 // Source : data.gouv.fr - Base nationale des défibrillateurs
@@ -89,12 +90,12 @@ export async function GET(request: Request) {
       });
     }
 
-    const data = await response.json();
+    const data: OpenDataSoftDAEResponse = await response.json();
 
     // Transformer les résultats
-    const defibrillateurs: Defibrillateur[] = (data.results || [])
-      .map((record: Record<string, unknown>) => {
-        const geoPoint = record.geo_point_2d as { lat: number; lon: number } | undefined;
+    const defibrillateurs = (data.results || [])
+      .map((record: OpenDataSoftDAERecord) => {
+        const geoPoint = record.geo_point_2d;
         if (!geoPoint) return null;
 
         const dLat = geoPoint.lat;
@@ -116,13 +117,14 @@ export async function GET(request: Request) {
           distance: Math.round(distance),
         };
       })
-      .filter((d: Defibrillateur | null): d is Defibrillateur => d !== null)
-      .sort((a: Defibrillateur, b: Defibrillateur) => (a.distance || 0) - (b.distance || 0))
-      .slice(0, maxResults);
+      .filter(Boolean) as Defibrillateur[];
+
+    defibrillateurs.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    const limitedResults = defibrillateurs.slice(0, maxResults);
 
     return NextResponse.json({
-      defibrillateurs,
-      count: defibrillateurs.length,
+      defibrillateurs: limitedResults,
+      count: limitedResults.length,
       source: 'OpenDataSoft - DAE France',
       searchRadius: radiusMeters,
       center: { lat: latitude, lon: longitude },

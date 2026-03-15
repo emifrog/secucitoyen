@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
+import type { OpenMeteoCurrentResponse } from '@/lib/types/api-responses';
 
 // Calcul du risque d'incendie basé sur les conditions météo
 // Utilise Fire Weather Index (FWI) via Open-Meteo
@@ -148,7 +149,7 @@ export async function GET(request: Request) {
       );
 
       if (response.ok) {
-        const data = await response.json();
+        const data: OpenMeteoCurrentResponse = await response.json();
         const temp = data.current.temperature_2m;
         const humidity = data.current.relative_humidity_2m;
         const windSpeed = data.current.wind_speed_10m;
@@ -168,7 +169,7 @@ export async function GET(request: Request) {
             windSpeed,
             department: deptName,
             departmentCode: code,
-            updatedAt: data.current.time,
+            updatedAt: data.current.time || new Date().toISOString(),
             source: 'Calcul météo',
             advice: getFireAdvice(level),
           });
@@ -206,7 +207,7 @@ export async function GET(request: Request) {
                 windSpeed,
                 department: dept.name,
                 departmentCode: code,
-                updatedAt: data.current.time,
+                updatedAt: data.current.time || new Date().toISOString(),
                 source: 'Calcul météo',
                 advice: getFireAdvice(level),
               });

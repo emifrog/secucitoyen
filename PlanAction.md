@@ -92,27 +92,34 @@
   - Nettoyage automatique des entrées > 7 jours
 - [x] Table `sent_notifications` (migration `002_sent_notifications.sql`)
 
-**Reste à faire :**
-- [ ] Exécuter la migration `002_sent_notifications.sql` dans Supabase
-- [ ] Ajouter `CRON_SECRET` dans les variables d'environnement Vercel
+- [x] Migration `002_sent_notifications.sql` exécutée dans Supabase
+- [x] `CRON_SECRET` ajouté dans les variables d'environnement Vercel
 
 ---
 
 ## 2. Important
 
-### 2.1 Externaliser les données statiques
+### 2.1 Externaliser les données statiques — FAIT
 
 **Constat :** Les 15 fiches secours, 52 conseils, 12 numéros d'urgence sont hardcodés dans `/lib`. Toute mise à jour nécessite un redéploiement.
 
-**Note :** Supabase est maintenant activement utilisé (notifications push), ce qui facilite cette migration.
+**Réalisé :**
+- [x] Migration SQL `003_content_tables.sql` — 5 tables créées :
+  - `numeros_urgence`, `fiches_secours`, `checklists_prevention`, `conseils_saisonniers`, `saisons`
+  - Index, RLS (lecture publique), triggers auto `updated_at`
+- [x] Script de seed `scripts/seed-supabase.ts` — insère toutes les données locales dans Supabase
+  - Script `npm run seed` ajouté dans `package.json`
+- [x] Couche de fetch avec fallback : `lib/supabase-content.ts`
+  - `fetchEmergencyNumbers()`, `fetchFichesSecours()`, `fetchFicheById()`
+  - `fetchChecklists()`, `fetchSaisons()`, `fetchConseilById()`
+  - Fallback automatique sur données locales si Supabase indisponible
+- [x] Données locales conservées en fallback
 
-**Actions :**
-- [ ] Migrer les données vers Supabase
-  - [ ] Créer les tables : `fiches_secours`, `numeros_urgence`, `conseils_saison`, `checklists`
-  - [ ] Ecrire un script de migration des données existantes
-  - [ ] Créer les fonctions de fetch côté serveur avec ISR (revalidation 1h)
-- [ ] Conserver un fallback local (données actuelles) en cas d'indisponibilité Supabase
-- [ ] Optionnel : créer une interface admin simple pour éditer le contenu
+- [x] Migration `003_content_tables.sql` exécutée dans Supabase
+- [x] Seed exécuté avec succès (`npx tsx scripts/seed-supabase.ts`)
+
+**Optionnel :**
+- [ ] Créer une interface admin simple pour éditer le contenu
 
 ---
 
@@ -122,32 +129,45 @@
 
 ---
 
-### 2.3 Renforcer le typage TypeScript
+### 2.3 Renforcer le typage TypeScript — FAIT
 
 **Constat :** Certaines données et réponses API manquent de types stricts, ce qui augmente le risque d'erreurs runtime.
 
-**Actions :**
-- [ ] Auditer les fichiers `lib/` pour identifier les `any` et types manquants
-- [ ] Créer des types stricts pour chaque réponse API externe
-  - [ ] Type `MeteoFranceVigilance`
-  - [ ] Type `OpenMeteoAirQuality`
-  - [ ] Type `VigicruesResponse`
-  - [ ] Type `FireRiskResponse`
-  - [ ] Type `DefibrillateursResponse`
-- [ ] Activer `noUncheckedIndexedAccess` dans `tsconfig.json`
-- [ ] Ajouter la validation runtime avec Zod sur les réponses API (boundary validation)
+**Réalisé :**
+- [x] Audit des fichiers `lib/` — aucun `any` trouvé
+- [x] Création de `lib/types/api-responses.ts` avec types stricts pour :
+  - `VigicruesGeoJSON` + `VigicruesFeature`
+  - `OpenMeteoCurrentResponse`
+  - `OpenDataSoftDAEResponse` + `OpenDataSoftDAERecord`
+  - Types internes : `AlertItem`, `AlertApiResponse`, etc.
+- [x] Application des types aux routes API :
+  - `/api/vigicrues` — GeoJSON typé, plus de `Record<string, unknown>`
+  - `/api/meteo-forets` — `OpenMeteoCurrentResponse`
+  - `/api/fire-risk` — `OpenMeteoCurrentResponse`
+  - `/api/defibrillateurs` — `OpenDataSoftDAEResponse`
+- [x] 0 erreurs TypeScript (`npx tsc --noEmit` passe)
+
+**Non fait (hors scope actuel) :**
+- [ ] Activer `noUncheckedIndexedAccess` (impacterait tout le code)
+- [ ] Validation runtime Zod (ajouterait une dépendance)
 
 ---
 
-### 2.4 Améliorer le système i18n
+### 2.4 Améliorer le système i18n — FAIT
 
 **Constat :** Les traductions sont inline dans le code, rendant la maintenance et l'ajout de langues difficile.
 
-**Actions :**
-- [ ] Extraire les traductions dans des fichiers JSON séparés (`/locales/fr.json`, `/locales/en.json`, `/locales/it.json`)
-- [ ] Adopter une librairie i18n légère (next-intl ou i18next)
-- [ ] Ajouter des langues prioritaires : Espagnol, Arabe, Portugais (populations significatives en France)
-- [ ] Traduire les fiches de premiers secours (contenu critique)
+**Réalisé :**
+- [x] Traductions extraites dans des fichiers JSON séparés : `/locales/{fr,en,it,es,pt}.json`
+- [x] `translations.ts` réécrit pour importer les JSON (plus de données inline)
+- [x] 2 nouvelles langues ajoutées : Espagnol (es) et Portugais (pt)
+- [x] `LanguageSelector.tsx` mis à jour pour afficher les 5 langues
+- [x] Détection automatique du navigateur étendue aux 5 langues
+- [x] Exports ajoutés : `localeNames`, `supportedLocales`
+
+**Non fait :**
+- [ ] Arabe (nécessite support RTL, complexe)
+- [ ] Traduire les fiches de premiers secours (contenu critique, nécessite traducteur professionnel)
 
 ---
 
@@ -220,7 +240,9 @@
 | **Phase 1** | 1.2 Retry APIs + Circuit Breaker | FAIT |
 | **Phase 1** | 1.1 Tests unitaires + E2E | FAIT |
 | **Phase 1** | 1.3 Notifications push | FAIT |
-| **Phase 2** | 2.1 Externaliser données vers Supabase + 2.3 Typage | A faire |
-| **Phase 3** | 2.4 i18n + 3.2 SEO | A faire |
-| **Phase 4** | 3.1 IndexedDB + 3.4 Performance | A faire |
-| **Phase 5** | 3.3 Accessibilité + 3.5 Mode urgence | A faire |
+| **Phase 2** | 2.1 Externaliser données vers Supabase | FAIT |
+| **Phase 2** | 2.3 Renforcer le typage TypeScript | FAIT |
+| **Phase 2** | 2.4 Améliorer le système i18n | FAIT |
+| **Phase 3** | 3.2 SEO | A faire |
+| **Phase 3** | 3.1 IndexedDB + 3.4 Performance | A faire |
+| **Phase 4** | 3.3 Accessibilité + 3.5 Mode urgence | A faire |

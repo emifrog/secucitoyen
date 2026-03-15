@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
+import type { OpenMeteoCurrentResponse } from '@/lib/types/api-responses';
 
 // API pour récupérer le risque incendie de forêt (Météo des forêts)
 // Calcul basé sur l'Indice Feu Météo (IFM) via données météo
@@ -124,15 +125,15 @@ export async function GET(request: Request) {
 
         if (!response.ok) continue;
 
-        const data = await response.json();
+        const data: OpenMeteoCurrentResponse = await response.json();
         const current = data.current;
 
         if (!current) continue;
 
-        const temp = current.temperature_2m || 20;
-        const humidity = current.relative_humidity_2m || 50;
-        const wind = current.wind_speed_10m || 10;
-        const precip = current.precipitation || 0;
+        const temp = current.temperature_2m ?? 20;
+        const humidity = current.relative_humidity_2m ?? 50;
+        const wind = current.wind_speed_10m ?? 10;
+        const precip = current.precipitation ?? 0;
 
         const ifm = calculateIFM(temp, humidity, wind, precip);
         const niveau = getNiveau(ifm, info.sensibilite);

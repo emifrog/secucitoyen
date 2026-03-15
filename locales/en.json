@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Home",
+    "emergencies": "Emergency",
+    "firstAid": "First Aid",
+    "prevention": "Prevention",
+    "alerts": "Alerts"
+  },
+  "home": {
+    "welcome": "SécuCitoyen",
+    "subtitle": "Your daily safety companion",
+    "quickAccess": "Quick access",
+    "callEmergency": "Call emergency",
+    "seasonalTips": "Seasonal tips",
+    "viewAll": "View all"
+  },
+  "emergencies": {
+    "title": "Emergency numbers",
+    "subtitle": "Call with one tap",
+    "call": "Call",
+    "favorites": "Favorites",
+    "allNumbers": "All numbers",
+    "shareLocation": "Share my location",
+    "shareLocationDesc": "Send your GPS position via SMS",
+    "medical": "Medical emergency",
+    "fire": "Fire and rescue",
+    "police": "Police emergency",
+    "european": "European number"
+  },
+  "firstAid": {
+    "title": "First aid",
+    "subtitle": "Life-saving gestures",
+    "emergency": "Life-threatening emergency",
+    "callBefore": "Call 15 or 112 before acting",
+    "steps": "Steps",
+    "doNot": "Do not",
+    "whenToCall": "When to call",
+    "whatToSay": "What to say",
+    "offline": "Available offline",
+    "offlineDesc": "These guides are saved on your phone",
+    "training": "Get trained",
+    "trainingDesc": "These guides do not replace proper training"
+  },
+  "prevention": {
+    "title": "Prevention",
+    "subtitle": "Tips and checklists",
+    "checklist": "Checklist",
+    "items": "items",
+    "priority": {
+      "high": "High priority",
+      "medium": "Medium priority",
+      "low": "Low priority"
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "Real-time warnings",
+    "current": "Current alerts",
+    "noAlerts": "No alerts at this time",
+    "filter": {
+      "all": "All",
+      "orange": "Orange",
+      "red": "Red",
+      "weather": "Weather",
+      "pollution": "Air",
+      "fire": "Fire"
+    },
+    "locate": "Locate me",
+    "locating": "Locating...",
+    "department": "Your area",
+    "sources": "Sources",
+    "updated": "Updated"
+  },
+  "defibrillators": {
+    "title": "Defibrillators (AED)",
+    "subtitle": "Find a defibrillator nearby",
+    "find": "Find AEDs near me",
+    "finding": "Searching...",
+    "nearest": "Nearest",
+    "distance": "Distance",
+    "availability": "Availability",
+    "access": "Accessibility",
+    "directions": "Directions",
+    "howToUse": "How to use an AED?",
+    "cardiacArrest": "In case of cardiac arrest",
+    "cardiacArrestSteps": [
+      "Call 15 or 112",
+      "Start chest compressions",
+      "Send someone to get an AED"
+    ]
+  },
+  "seasonal": {
+    "title": "Seasonal tips",
+    "subtitle": "Adapted risks and prevention",
+    "current": "Current season",
+    "tips": "tips",
+    "otherSeasons": "Other seasons",
+    "seasons": {
+      "winter": "Winter",
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn"
+    }
+  },
+  "common": {
+    "back": "Back",
+    "search": "Search",
+    "searchPlaceholder": "Search...",
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "close": "Close",
+    "more": "More",
+    "install": "Install app",
+    "installDesc": "Add SécuCitoyen to your home screen",
+    "later": "Later",
+    "language": "Language"
+  }
+}

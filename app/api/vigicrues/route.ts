@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
+import type { VigicruesGeoJSON, VigicruesFeature } from '@/lib/types/api-responses';
 
 // API pour récupérer les vigilances crues depuis Vigicrues
 // Source : https://www.vigicrues.gouv.fr/services/v1.1
@@ -85,21 +86,21 @@ async function fetchVigicruesData(): Promise<VigicrueAlert[]> {
     throw new Error(`Vigicrues API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data: VigicruesGeoJSON = await response.json();
   const features = data.features || [];
 
   // Transformer les données - ne garder que les alertes actives
-  const alerts: VigicrueAlert[] = features
-    .map((feature: Record<string, unknown>) => {
-      const props = feature.properties as Record<string, unknown> || {};
-      const niveau = parseNiveau(props.NivSituVigiCruEnt as number);
+  const alerts = features
+    .map((feature: VigicruesFeature) => {
+      const props = feature.properties;
+      const niveau = parseNiveau(props.NivSituVigiCruEnt);
 
       // Ne garder que les alertes jaune, orange ou rouge
       if (niveau === 'vert') return null;
 
       // Extraire le département du code tronçon si possible
-      const codeTroncon = String(props.CdEntVigiCru || '');
-      const tronconName = String(props.NomEntVigiCru || 'Tronçon inconnu');
+      const codeTroncon = props.CdEntVigiCru || '';
+      const tronconName = props.NomEntVigiCru || 'Tronçon inconnu';
 
       // Essayer de déterminer le département
       let deptCode = '';
@@ -118,12 +119,12 @@ async function fetchVigicruesData(): Promise<VigicrueAlert[]> {
         id: `vigicrues-${codeTroncon}`,
         troncon: tronconName,
         niveau,
-        cours_eau: String(props.NomCoursEau || props.NomEntVigiCru || 'Cours d\'eau'),
+        cours_eau: props.NomCoursEau || props.NomEntVigiCru || 'Cours d\'eau',
         departement: deptName,
         departementCode: deptCode,
       };
     })
-    .filter((alert: VigicrueAlert | null): alert is VigicrueAlert => alert !== null);
+    .filter(Boolean) as VigicrueAlert[];
 
   // Mettre en cache mémoire (léger, uniquement les alertes actives)
   cachedData = { alerts, timestamp: Date.now() };
