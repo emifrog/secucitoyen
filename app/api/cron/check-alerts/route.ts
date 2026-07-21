@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { getTrustedBaseUrl, sanitizeDepartmentCode } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Compare deux secrets en rejetant les valeurs vides, absentes ou laissées
+ * au placeholder d'exemple. Évite qu'un `Bearer undefined` ou le secret
+ * de démo (`your_cron_secret`) n'ouvre la route.
+ */
+function isValidSecret(provided: string | null, expected: string | undefined): boolean {
+  if (!provided || !expected) return false;
+  if (expected === 'your_cron_secret' || expected === 'your_random_api_key') return false;
+  return provided === expected;
+}
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
@@ -25,12 +37,18 @@ interface AlertData {
 export async function GET(request: Request) {
   // Vérification : soit Vercel Cron, soit API key manuelle
   const authHeader = request.headers.get('authorization');
-  const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
-  const isApiKey = request.headers.get('x-api-key') === process.env.NOTIFICATIONS_API_KEY;
+  const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const isCron = isValidSecret(bearer, process.env.CRON_SECRET);
+  const isApiKey = isValidSecret(
+    request.headers.get('x-api-key'),
+    process.env.NOTIFICATIONS_API_KEY
+  );
 
   if (!isCron && !isApiKey) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
+
+  const supabase = getSupabaseAdmin();
 
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
     return NextResponse.json({ error: 'VAPID non configuré' }, { status: 500 });
@@ -38,7 +56,7 @@ export async function GET(request: Request) {
 
   try {
     // 1. Récupérer les alertes actuelles (orange et rouge uniquement)
-    const baseUrl = new URL(request.url).origin;
+    const baseUrl = getTrustedBaseUrl(request);
     const alertsResponse = await fetch(`${baseUrl}/api/alerts`);
     const alertsData = await alertsResponse.json();
 
@@ -72,8 +90,9 @@ export async function GET(request: Request) {
     for (const alert of newAlerts) {
       // Récupérer les abonnés ciblés
       let query = supabase.from('push_subscriptions').select('*');
-      if (alert.departmentCode) {
-        query = query.or(`department_code.eq.${alert.departmentCode},department_code.is.null`);
+      const safeDept = sanitizeDepartmentCode(alert.departmentCode);
+      if (safeDept) {
+        query = query.or(`department_code.eq.${safeDept},department_code.is.null`);
       }
 
       const { data: subscriptions } = await query;

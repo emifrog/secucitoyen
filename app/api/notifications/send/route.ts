@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { sanitizeDepartmentCode, toSafeRelativePath } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,12 +49,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Récupérer les subscriptions ciblées
-    let query = supabase.from('push_subscriptions').select('*');
+    // Récupérer les subscriptions ciblées (client admin, RLS contournée)
+    const supabaseAdmin = getSupabaseAdmin();
+    let query = supabaseAdmin.from('push_subscriptions').select('*');
 
-    if (departmentCode) {
+    const safeDept = sanitizeDepartmentCode(departmentCode);
+    if (safeDept) {
       // Envoyer aux abonnés du département OU sans département (national)
-      query = query.or(`department_code.eq.${departmentCode},department_code.is.null`);
+      query = query.or(`department_code.eq.${safeDept},department_code.is.null`);
     }
 
     const { data: subscriptions, error: fetchError } = await query;
@@ -79,9 +82,9 @@ export async function POST(request: Request) {
     const payload = JSON.stringify({
       title: level ? `${levelEmoji[level]} ${title}` : title,
       body: notifBody,
-      icon: icon || '/icons/icon-192x192.svg',
+      icon: toSafeRelativePath(icon, '/icons/icon-192x192.svg'),
       badge: '/icons/icon-72x72.svg',
-      url: url || '/alertes',
+      url: toSafeRelativePath(url, '/alertes'),
       tag: tag || `alert-${Date.now()}`,
       requireInteraction: level === 'rouge',
     });
@@ -114,7 +117,7 @@ export async function POST(request: Request) {
 
     // Nettoyer les subscriptions expirées
     if (expiredEndpoints.length > 0) {
-      await supabase
+      await supabaseAdmin
         .from('push_subscriptions')
         .delete()
         .in('endpoint', expiredEndpoints);

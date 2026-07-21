@@ -218,7 +218,7 @@ export default function AlertsList() {
               {degradedSources.length === 1 ? 'Une source est' : `${degradedSources.length} sources sont`} temporairement indisponible{degradedSources.length > 1 ? 's' : ''}
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-              {degradedSources.map((s) => s.source).join(', ')} — les donn\u00e9es affich\u00e9es peuvent \u00eatre incompl\u00e8tes
+              {degradedSources.map((s) => s.source).join(', ')} — les données affichées peuvent être incomplètes
             </p>
           </div>
         </div>

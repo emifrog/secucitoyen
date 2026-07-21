@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Alert, AlertLevel, AlertType, alertTypes, getAdviceForAlert } from '@/lib/alertes';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
+import { sanitizeDepartmentCode } from '@/lib/validation';
 
 // API Opendatasoft - Données officielles Météo-France par département
 const VIGILANCE_DEPT_URL = 'https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/weatherref-france-vigilance-meteo-departement/records';
@@ -84,16 +85,16 @@ export const revalidate = 300; // 5 minutes
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const deptCode = searchParams.get('dept');
+  const deptCode = sanitizeDepartmentCode(searchParams.get('dept'));
 
   try {
-    // Construire l'URL avec filtres
-    let apiUrl = `${VIGILANCE_DEPT_URL}?limit=100&where=color_id>1`;
-
-    // Filtrer par département si demandé
+    // Construire l'URL avec filtres. `deptCode` est validé (^\d{2}|2[AB]|97[1-6]$)
+    // en amont, ce qui exclut toute injection ODSQL dans la clause where.
+    let whereClause = 'color_id>1';
     if (deptCode) {
-      apiUrl += ` AND domain_id='${deptCode}'`;
+      whereClause += ` AND domain_id='${deptCode}'`;
     }
+    const apiUrl = `${VIGILANCE_DEPT_URL}?limit=100&where=${encodeURIComponent(whereClause)}`;
 
     const response = await fetchWithCircuitBreaker('meteo-france', apiUrl, {
       headers: {

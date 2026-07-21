@@ -1,0 +1,33 @@
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient72" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A5F"/>
+      <stop offset="100%" style="stop-color:#0F2744"/>
+    </linearGradient>
+    <linearGradient id="shieldGradient72" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F97316"/>
+      <stop offset="100%" style="stop-color:#EA580C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond arrondi -->
+  <rect width="72" height="72" rx="14" fill="url(#bgGradient72)"/>
+
+  <!-- Bouclier principal -->
+  <path
+    d="M36 10
+       C36 10 52 14.5 52 14.5
+       C53.2 15 54 16 54 17.5
+       L54 35
+       C54 44 47 53 36 60
+       C25 53 18 44 18 35
+       L18 17.5
+       C18 16 18.8 15 20 14.5
+       C20 14.5 36 10 36 10Z"
+    fill="url(#shieldGradient72)"
+  />
+
+  <!-- Croix médicale / secours -->
+  <rect x="31.5" y="21" width="9" height="25" rx="1.5" fill="white"/>
+  <rect x="24.5" y="29" width="23" height="9" rx="1.5" fill="white"/>
+</svg>

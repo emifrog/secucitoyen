@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { isAllowedPushEndpoint, sanitizeDepartmentCode } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,21 +14,30 @@ export async function POST(request: Request) {
     const body: SubscribeRequest = await request.json();
     const { subscription, departmentCode } = body;
 
-    if (!subscription || !subscription.endpoint) {
+    // Valide que l'endpoint pointe vers un service de push connu (anti-SSRF).
+    if (!subscription || !isAllowedPushEndpoint(subscription.endpoint)) {
       return NextResponse.json(
         { error: 'Subscription invalide' },
         { status: 400 }
       );
     }
 
-    // Upsert la subscription dans Supabase
-    const { error } = await supabase
+    // La forme des clés ECDH doit être présente.
+    if (!subscription.keys?.p256dh || !subscription.keys?.auth) {
+      return NextResponse.json(
+        { error: 'Clés de subscription invalides' },
+        { status: 400 }
+      );
+    }
+
+    // Upsert la subscription dans Supabase (client admin, RLS contournée)
+    const { error } = await getSupabaseAdmin()
       .from('push_subscriptions')
       .upsert(
         {
           endpoint: subscription.endpoint,
           keys: subscription.keys,
-          department_code: departmentCode || null,
+          department_code: sanitizeDepartmentCode(departmentCode),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'endpoint' }
@@ -63,7 +73,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const { error } = await supabase
+    const { error } = await getSupabaseAdmin()
       .from('push_subscriptions')
       .delete()
       .eq('endpoint', endpoint);

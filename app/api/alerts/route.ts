@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getTrustedBaseUrl, sanitizeDepartmentCode } from '@/lib/validation';
 
 // API unifiée pour toutes les alertes
 // Combine : Météo-France (vigilance), Qualité de l'air, Risque incendie, Vigicrues, Météo des forêts
@@ -61,9 +62,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');
-  const deptCode = searchParams.get('dept');
+  const deptCode = sanitizeDepartmentCode(searchParams.get('dept'));
 
-  const baseUrl = new URL(request.url).origin;
+  const baseUrl = getTrustedBaseUrl(request);
   const allAlerts: UnifiedAlert[] = [];
   const sources: string[] = [];
 
