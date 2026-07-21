@@ -14,7 +14,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('system');
   const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = getStoredTheme();
@@ -22,7 +21,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const effective = stored === 'system' ? getSystemTheme() : stored;
     setEffectiveTheme(effective);
     applyTheme(stored);
-    setMounted(true);
 
     // Écouter les changements de préférence système
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -46,11 +44,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(newTheme);
   };
 
-  // Éviter le flash de thème incorrect
-  if (!mounted) {
-    return null;
-  }
-
+  // Rendu immédiat : l'anti-FOUC est déjà géré par le script inline du layout
+  // (classe `dark` posée avant hydratation), donc pas besoin de bloquer le SSR.
   return (
     <ThemeContext.Provider value={{ theme, effectiveTheme, setTheme }}>
       {children}

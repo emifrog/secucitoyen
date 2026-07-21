@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { sanitizeDepartmentCode, toSafeRelativePath } from '@/lib/validation';
+import { isValidSecret } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,9 +27,8 @@ interface SendRequest {
 
 export async function POST(request: Request) {
   try {
-    // Vérification simple par header (à remplacer par une auth plus robuste en production)
-    const authHeader = request.headers.get('x-api-key');
-    if (authHeader !== process.env.NOTIFICATIONS_API_KEY) {
+    // Auth par clé API : comparaison timing-safe, placeholder rejeté.
+    if (!isValidSecret(request.headers.get('x-api-key'), process.env.NOTIFICATIONS_API_KEY)) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 

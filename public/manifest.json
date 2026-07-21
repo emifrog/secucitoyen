@@ -51,36 +51,6 @@
       "icons": [{ "src": "/icons/shortcut-dae.svg", "sizes": "96x96" }]
     }
   ],
-  "widgets": [
-    {
-      "name": "Urgences SécuCitoyen",
-      "short_name": "Urgences",
-      "description": "Accès rapide aux numéros d'urgence",
-      "tag": "emergency",
-      "ms_ac_template": "widget-emergency.json",
-      "data": "/api/widget/emergency",
-      "type": "application/json",
-      "screenshots": [
-        {
-          "src": "/widgets/screenshot-emergency.png",
-          "sizes": "600x400",
-          "label": "Widget numéros d'urgence"
-        }
-      ],
-      "icons": [
-        {
-          "src": "/icons/widget-emergency.svg",
-          "sizes": "44x44"
-        }
-      ],
-      "backgrounds": [
-        {
-          "src": "/widgets/background.png",
-          "sizes": "600x400"
-        }
-      ]
-    }
-  ],
   "categories": ["health", "utilities", "lifestyle"],
   "lang": "fr-FR",
   "dir": "ltr"

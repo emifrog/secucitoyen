@@ -15,7 +15,6 @@ const STORAGE_KEY = 'secucitoyen_locale';
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('fr');
-  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     // Récupérer la langue sauvegardée ou détecter la langue du navigateur
@@ -29,7 +28,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setLocaleState(browserLang);
       }
     }
-    setIsHydrated(true);
   }, []);
 
   const setLocale = (newLocale: Locale) => {
@@ -41,11 +39,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = getTranslation(locale);
 
-  // Éviter le flash de contenu avec la mauvaise langue
-  if (!isHydrated) {
-    return null;
-  }
-
+  // Rendu immédiat en FR côté serveur (SSR/SEO préservés) ; l'éventuelle
+  // langue sauvegardée s'applique après hydratation sans bloquer le rendu.
   return (
     <I18nContext.Provider value={{ locale, setLocale, t }}>
       {children}

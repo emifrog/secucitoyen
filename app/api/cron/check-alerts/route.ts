@@ -2,19 +2,9 @@ import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { getTrustedBaseUrl, sanitizeDepartmentCode } from '@/lib/validation';
+import { isValidSecret } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
-
-/**
- * Compare deux secrets en rejetant les valeurs vides, absentes ou laissées
- * au placeholder d'exemple. Évite qu'un `Bearer undefined` ou le secret
- * de démo (`your_cron_secret`) n'ouvre la route.
- */
-function isValidSecret(provided: string | null, expected: string | undefined): boolean {
-  if (!provided || !expected) return false;
-  if (expected === 'your_cron_secret' || expected === 'your_random_api_key') return false;
-  return provided === expected;
-}
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';

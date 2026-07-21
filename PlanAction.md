@@ -99,27 +99,25 @@
 
 ## 2. Important
 
-### 2.1 Externaliser les données statiques — FAIT
+### 2.1 Externaliser les données statiques — ANNULÉ (revenu au contenu statique)
 
 **Constat :** Les 15 fiches secours, 52 conseils, 12 numéros d'urgence sont hardcodés dans `/lib`. Toute mise à jour nécessite un redéploiement.
 
-**Réalisé :**
-- [x] Migration SQL `003_content_tables.sql` — 5 tables créées :
-  - `numeros_urgence`, `fiches_secours`, `checklists_prevention`, `conseils_saisonniers`, `saisons`
-  - Index, RLS (lecture publique), triggers auto `updated_at`
-- [x] Script de seed `scripts/seed-supabase.ts` — insère toutes les données locales dans Supabase
-  - Script `npm run seed` ajouté dans `package.json`
-- [x] Couche de fetch avec fallback : `lib/supabase-content.ts`
-  - `fetchEmergencyNumbers()`, `fetchFichesSecours()`, `fetchFicheById()`
-  - `fetchChecklists()`, `fetchSaisons()`, `fetchConseilById()`
-  - Fallback automatique sur données locales si Supabase indisponible
-- [x] Données locales conservées en fallback
+**Décision :** la couche de contenu Supabase avait été livrée puis **jamais branchée** (les pages ont toujours lu les données statiques). Elle a été **supprimée** pour éliminer la double source de vérité :
+- ❌ `supabase/migrations/003_content_tables.sql` — supprimé
+- ❌ `scripts/seed-supabase.ts` + script `npm run seed` — supprimés
+- ❌ `lib/supabase-content.ts` — supprimé
+- ✅ Le contenu reste dans `lib/*.ts` (source de vérité unique, assumée statique)
 
-- [x] Migration `003_content_tables.sql` exécutée dans Supabase
-- [x] Seed exécuté avec succès (`npx tsx scripts/seed-supabase.ts`)
+> Supabase n'est donc utilisé que pour les notifications push (`push_subscriptions`,
+> `sent_notifications`), pas pour le contenu. Si l'externalisation redevient un
+> objectif (admin de contenu), tout est à refaire — et devra alors prévoir la
+> dimension multilingue absente des anciennes tables.
 
-**Optionnel :**
-- [ ] Créer une interface admin simple pour éditer le contenu
+**Si repris plus tard :**
+- [ ] Tables de contenu **avec colonnes/JSON par langue**
+- [ ] Couche de fetch réellement branchée dans les pages (avec fallback statique)
+- [ ] Interface admin d'édition
 
 ---
 

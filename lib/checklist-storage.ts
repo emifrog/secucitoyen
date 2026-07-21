@@ -1,6 +1,15 @@
 'use client';
 
+import { checklistsPrevention } from './checklists-prevention';
+
 const STORAGE_KEY = 'secucitoyen_checklists';
+
+// Total réel des items, dérivé des données (évite un compteur figé qui
+// fausserait la progression dès qu'un conseil est ajouté ou retiré).
+const TOTAL_ITEMS = checklistsPrevention.reduce(
+  (sum, category) => sum + category.items.length,
+  0
+);
 
 export interface ChecklistProgress {
   [checklistId: string]: {
@@ -63,12 +72,10 @@ export function getOverallProgress(): {
     0
   );
 
-  // Import dynamically to avoid circular dependency
-  const totalItems = 52; // Total items across all checklists
-
   return {
-    totalItems,
+    totalItems: TOTAL_ITEMS,
     completedItems,
-    percentage: Math.round((completedItems / totalItems) * 100),
+    percentage:
+      TOTAL_ITEMS > 0 ? Math.round((completedItems / TOTAL_ITEMS) * 100) : 0,
   };
 }
