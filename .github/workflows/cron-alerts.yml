@@ -1,0 +1,26 @@
+name: Check alerts (scheduled)
+
+# Déclenche l'envoi des notifications d'alerte toutes les 15 minutes.
+# Alternative gratuite au Vercel Cron (indisponible < 1x/jour sur le plan Hobby).
+#
+# Secrets à configurer dans le dépôt (Settings → Secrets and variables → Actions) :
+#   PRODUCTION_URL : ex. https://secucitoyen.fr (sans slash final)
+#   CRON_SECRET    : identique à la variable d'env Vercel
+#
+# Note : les workflows planifiés GitHub peuvent être retardés en cas de charge
+# et sont désactivés après 60 j d'inactivité du dépôt.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping check-alerts endpoint
+        run: |
+          curl -fsS --max-time 60 -X GET \
+            "${{ secrets.PRODUCTION_URL }}/api/cron/check-alerts" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
