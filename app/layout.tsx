@@ -4,7 +4,6 @@ import "./globals.css";
 import { Header, BottomNav, InstallPrompt } from "@/components/layout";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/providers";
-import { I18nProvider } from "@/lib/i18n";
 import EmergencyFab from "@/components/layout/EmergencyFab";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -71,19 +70,17 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased bg-gray-50 dark:bg-slate-900`}>
         <ThemeProvider>
-          <I18nProvider>
-            <div className="max-w-[428px] mx-auto min-h-screen bg-white dark:bg-slate-800 shadow-lg flex flex-col">
-              <Header />
-              <main className="pb-20 flex-1">
-                {children}
-              </main>
-              <Footer />
-              <EmergencyFab />
-              <InstallPrompt />
-              <BottomNav />
-            </div>
-            <Analytics />
-          </I18nProvider>
+          <div className="max-w-[428px] mx-auto min-h-screen bg-white dark:bg-slate-800 shadow-lg flex flex-col">
+            <Header />
+            <main className="pb-20 flex-1">
+              {children}
+            </main>
+            <Footer />
+            <EmergencyFab />
+            <InstallPrompt />
+            <BottomNav />
+          </div>
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>

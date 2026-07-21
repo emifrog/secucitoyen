@@ -151,21 +151,20 @@
 
 ---
 
-### 2.4 Améliorer le système i18n — FAIT
+### 2.4 Système i18n — RETIRÉ (application FR-only assumée)
 
-**Constat :** Les traductions sont inline dans le code, rendant la maintenance et l'ajout de langues difficile.
+**Constat :** L'infrastructure i18n (5 locales JSON parfaitement synchronisées) existait,
+mais **aucun composant ne la consommait** hormis le `LanguageSelector` — changer de langue
+ne traduisait rien à l'écran, et tout le contenu métier restait en français.
 
-**Réalisé :**
-- [x] Traductions extraites dans des fichiers JSON séparés : `/locales/{fr,en,it,es,pt}.json`
-- [x] `translations.ts` réécrit pour importer les JSON (plus de données inline)
-- [x] 2 nouvelles langues ajoutées : Espagnol (es) et Portugais (pt)
-- [x] `LanguageSelector.tsx` mis à jour pour afficher les 5 langues
-- [x] Détection automatique du navigateur étendue aux 5 langues
-- [x] Exports ajoutés : `localeNames`, `supportedLocales`
+**Décision :** assumer le français uniquement et retirer la dette :
+- ❌ `lib/i18n/` (context, translations) + `locales/*.json` — supprimés
+- ❌ `components/layout/LanguageSelector.tsx` + `I18nProvider` du layout — supprimés
+- ❌ `__tests__/lib/i18n.test.ts` — supprimé
 
-**Non fait :**
-- [ ] Arabe (nécessite support RTL, complexe)
-- [ ] Traduire les fiches de premiers secours (contenu critique, nécessite traducteur professionnel)
+**Si le multilingue redevient un objectif :** repartir d'une base qui traduit aussi le
+**contenu** (fiches, conseils, numéros), pas seulement le chrome de l'UI — idéalement via
+des colonnes/JSON par langue côté données.
 
 ---
 

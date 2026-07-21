@@ -48,18 +48,11 @@ Application Progressive Web App (PWA) de sécurité citoyenne pour la France. Pr
 - **Filtres** : Par niveau (orange, rouge) ou catégorie (météo, pollution, incendie, crues)
 - Rafraîchissement automatique toutes les 5 minutes
 
-### Multi-langue
-- **3 langues supportées** : Français, English, Italiano
-- Détection automatique de la langue du navigateur
-- Sélecteur de langue dans le header
-- Sauvegarde des préférences
-
 ### PWA
 - Installation sur l'écran d'accueil
 - **Raccourcis** : Appel direct 15, 17, 18 et accès DAE
-- **Widget** d'urgence pour l'écran d'accueil
-- Fonctionnement hors-ligne
-- Notifications push
+- Fonctionnement hors-ligne (fiches de secours en cache, appels d'urgence)
+- Notifications push (vigilances orange/rouge)
 - Mode sombre automatique
 
 ## Technologies
@@ -69,7 +62,10 @@ Application Progressive Web App (PWA) de sécurité citoyenne pour la France. Pr
 - **PWA** : next-pwa
 - **TypeScript** : Typage strict
 - **API** : Route handlers Next.js
-- **i18n** : Système de traduction maison (FR, EN, IT)
+- **Base de données** : Supabase (abonnements push uniquement)
+- **Notifications** : Web Push / VAPID
+- **Monitoring** : Sentry + Vercel Analytics
+- **Langue** : Français uniquement
 
 ## Installation
 
@@ -115,17 +111,17 @@ secucitoyen/
 │   ├── alertes/              # Composants alertes
 │   ├── favorites/            # Système de favoris
 │   ├── home/                 # Composants accueil (SeasonalTips, etc.)
-│   ├── layout/               # Header, Nav, FAB, Search, Install, LanguageSelector
+│   ├── layout/               # Header, Nav, FAB, Search, Install
 │   ├── prevention/           # Composants prévention
 │   ├── providers/            # Context providers (Theme)
 │   ├── secours/              # Composants secours
 │   ├── ui/                   # Composants UI (Card, Button)
 │   └── urgences/             # Composants urgences
 ├── lib/
-│   ├── i18n/                 # Système multi-langue
-│   │   ├── context.tsx       # Provider et hooks
-│   │   ├── translations.ts   # Traductions FR/EN/IT
-│   │   └── index.ts          # Exports
+│   ├── api-auth.ts           # Comparaison timing-safe des secrets (routes)
+│   ├── api-utils.ts          # Retry + circuit breaker (APIs tierces)
+│   ├── validation.ts         # Validation des entrées (anti-SSRF/injection)
+│   ├── supabase.ts           # Clients Supabase (public + service_role)
 │   ├── conseils-saisonniers.ts  # Données conseils par saison
 │   ├── fiches-secours.ts     # 15 fiches premiers secours
 │   ├── checklists-prevention.ts # Check-lists prévention
@@ -135,7 +131,7 @@ secucitoyen/
 │   └── alertes.ts            # Types et données alertes
 ├── public/
 │   ├── icons/                # Icônes PWA et raccourcis
-│   └── manifest.json         # Manifest PWA avec shortcuts et widgets
+│   └── manifest.json         # Manifest PWA avec raccourcis (shortcuts)
 └── data/
     └── emergency-numbers.ts
 ```
@@ -298,9 +294,6 @@ L'utilisateur peut :
 ### Mode sombre
 Le thème s'adapte automatiquement aux préférences système ou peut être changé manuellement via le bouton dans le header.
 
-### Langue
-L'application détecte automatiquement la langue du navigateur (FR, EN, IT) ou permet de changer via le sélecteur dans le header.
-
 ### Notifications
 Les notifications push alertent l'utilisateur en cas de vigilance orange ou rouge dans son département.
 
@@ -323,7 +316,6 @@ Les notifications push alertent l'utilisateur en cas de vigilance orange ou roug
 | Conseils prévention | 52 |
 | Thématiques saisonnières | 18 |
 | Numéros d'urgence | 12+ |
-| Langues supportées | 3 |
 | Sources d'alertes | 5 |
 
 ## Licence

@@ -4,7 +4,7 @@ name: Check alerts (scheduled)
 # Alternative gratuite au Vercel Cron (indisponible < 1x/jour sur le plan Hobby).
 #
 # Secrets à configurer dans le dépôt (Settings → Secrets and variables → Actions) :
-#   PRODUCTION_URL : ex. https://secucitoyen.fr (sans slash final)
+#   PRODUCTION_URL : ex. https://secucitoyen.vercel.app (sans slash final)
 #   CRON_SECRET    : identique à la variable d'env Vercel
 #
 # Note : les workflows planifiés GitHub peuvent être retardés en cas de charge

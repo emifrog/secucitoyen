@@ -113,9 +113,9 @@ describe('getTrustedBaseUrl', () => {
   });
 
   it('privilégie NEXT_PUBLIC_SITE_URL (sans slash final)', () => {
-    process.env.NEXT_PUBLIC_SITE_URL = 'https://secucitoyen.fr/';
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://secucitoyen.vercel.app/';
     const req = new Request('https://attacker.example/api/alerts');
-    expect(getTrustedBaseUrl(req)).toBe('https://secucitoyen.fr');
+    expect(getTrustedBaseUrl(req)).toBe('https://secucitoyen.vercel.app');
   });
 
   it('utilise VERCEL_URL en https si SITE_URL absent', () => {
@@ -125,7 +125,7 @@ describe('getTrustedBaseUrl', () => {
   });
 
   it("retombe sur l'origine de la requête en dernier recours", () => {
-    const req = new Request('https://secucitoyen.fr/api/alerts');
-    expect(getTrustedBaseUrl(req)).toBe('https://secucitoyen.fr');
+    const req = new Request('https://secucitoyen.vercel.app/api/alerts');
+    expect(getTrustedBaseUrl(req)).toBe('https://secucitoyen.vercel.app');
   });
 });
