@@ -23,17 +23,24 @@ export default function EmergencyFab() {
   }, [expanded]);
 
   return (
-    <div className="fixed bottom-20 right-4 z-40">
+    <>
+      {/* Overlay plein écran (backdrop de fermeture) */}
+      {expanded && (
+        <div
+          className="fixed inset-0 bg-black/20 z-30"
+          aria-hidden="true"
+          onClick={() => setExpanded(false)}
+        />
+      )}
+
+      {/* Wrapper centré : aligne le FAB sur la colonne de l'app (max-w-app),
+          transparent aux clics sauf sur le bouton lui-même. */}
+      <div className="fixed inset-x-0 bottom-20 z-40 pointer-events-none">
+        <div className="relative max-w-app mx-auto">
+          <div className="absolute right-4 bottom-0 pointer-events-auto">
       {/* Menu étendu */}
       {expanded && (
         <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/20 z-30"
-            aria-hidden="true"
-            onClick={() => setExpanded(false)}
-          />
-
           {/* Quick actions */}
           <div
             role="group"
@@ -142,6 +149,9 @@ export default function EmergencyFab() {
           animation: pulse-slow 2s infinite;
         }
       `}</style>
-    </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

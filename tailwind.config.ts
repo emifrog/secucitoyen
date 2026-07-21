@@ -8,6 +8,11 @@ const config: Config = {
   darkMode: 'class',
   theme: {
     extend: {
+      // Largeur de la colonne « app » (format téléphone). Source unique,
+      // à réutiliser via `max-w-app` partout où l'ancien `max-w-[428px]` était codé.
+      maxWidth: {
+        app: "428px",
+      },
       colors: {
         primary: "#1E3A5F",
         accent: "#F97316",

@@ -64,7 +64,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Recherche"
-        className="absolute inset-x-0 top-0 max-w-[428px] mx-auto bg-white dark:bg-slate-800 shadow-2xl animate-slide-down"
+        className="absolute inset-x-0 top-0 max-w-app mx-auto bg-white dark:bg-slate-800 shadow-2xl animate-slide-down"
       >
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-slate-700">

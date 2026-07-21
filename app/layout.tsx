@@ -69,9 +69,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} antialiased bg-gray-50 dark:bg-slate-900`}>
+      <body className={`${inter.className} antialiased bg-gray-50 dark:bg-slate-900 overflow-x-hidden`}>
         <ThemeProvider>
-          <div className="max-w-[428px] mx-auto min-h-screen bg-white dark:bg-slate-800 shadow-lg flex flex-col">
+          <div className="max-w-app mx-auto min-h-screen bg-white dark:bg-slate-800 shadow-lg flex flex-col">
             <Header />
             <main className="pb-20 flex-1">
               {children}

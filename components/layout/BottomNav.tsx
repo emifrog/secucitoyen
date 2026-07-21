@@ -46,8 +46,8 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 z-50">
-      <div className="max-w-[428px] mx-auto flex justify-around items-center h-16">
+    <nav className="fixed inset-x-0 bottom-0 z-50">
+      <div className="max-w-app mx-auto flex justify-around items-center h-16 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
