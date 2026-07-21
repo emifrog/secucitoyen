@@ -12,7 +12,7 @@ jest.mock('next/link', () => {
 describe('EmergencyFab', () => {
   it('affiche le bouton d\'urgence fermé par défaut', () => {
     render(<EmergencyFab />);
-    const button = screen.getByRole('button', { name: /urgences/i });
+    const button = screen.getByRole('button', { name: /ouvrir les numéros d'urgence/i });
     expect(button).toBeInTheDocument();
   });
 
@@ -25,7 +25,7 @@ describe('EmergencyFab', () => {
 
   it('affiche les numéros 15, 17, 18 quand ouvert', () => {
     render(<EmergencyFab />);
-    fireEvent.click(screen.getByRole('button', { name: /urgences/i }));
+    fireEvent.click(screen.getByRole('button', { name: /ouvrir les numéros d'urgence/i }));
 
     expect(screen.getByText('15')).toBeInTheDocument();
     expect(screen.getByText('SAMU')).toBeInTheDocument();
@@ -37,14 +37,14 @@ describe('EmergencyFab', () => {
 
   it('affiche le lien 112 quand ouvert', () => {
     render(<EmergencyFab />);
-    fireEvent.click(screen.getByRole('button', { name: /urgences/i }));
+    fireEvent.click(screen.getByRole('button', { name: /ouvrir les numéros d'urgence/i }));
 
     expect(screen.getByText('112')).toBeInTheDocument();
   });
 
   it('les liens appellent les bons numéros', () => {
     render(<EmergencyFab />);
-    fireEvent.click(screen.getByRole('button', { name: /urgences/i }));
+    fireEvent.click(screen.getByRole('button', { name: /ouvrir les numéros d'urgence/i }));
 
     const links = screen.getAllByRole('link');
     const hrefs = links.map((l) => l.getAttribute('href'));

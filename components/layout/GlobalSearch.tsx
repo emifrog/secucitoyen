@@ -18,16 +18,23 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     if (isOpen) {
       inputRef.current?.focus();
       document.body.style.overflow = 'hidden';
-    } else {
-      setQuery('');
-      setResults([]);
-      document.body.style.overflow = '';
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      window.addEventListener('keydown', onKeyDown);
+      return () => {
+        window.removeEventListener('keydown', onKeyDown);
+        document.body.style.overflow = '';
+      };
     }
 
+    setQuery('');
+    setResults([]);
+    document.body.style.overflow = '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (query.length >= 2) {
@@ -48,11 +55,17 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        aria-hidden="true"
         onClick={handleClose}
       />
 
       {/* Modal de recherche */}
-      <div className="absolute inset-x-0 top-0 max-w-[428px] mx-auto bg-white dark:bg-slate-800 shadow-2xl animate-slide-down">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Recherche"
+        className="absolute inset-x-0 top-0 max-w-[428px] mx-auto bg-white dark:bg-slate-800 shadow-2xl animate-slide-down"
+      >
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-slate-700">
           <div className="flex-1 relative">
@@ -62,6 +75,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher (numéros, fiches, alertes...)"
+              aria-label="Rechercher dans l'application"
               className="w-full px-4 py-3 pl-10 bg-gray-100 dark:bg-slate-700 rounded-xl border-2 border-transparent focus:border-primary focus:bg-white dark:focus:bg-slate-600 focus:outline-none transition-all dark:text-gray-100 dark:placeholder-gray-400"
             />
             <svg

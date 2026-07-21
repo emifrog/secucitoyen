@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
 import type { VigicruesGeoJSON, VigicruesFeature } from '@/lib/types/api-responses';
+import { parseNiveau } from '@/lib/vigicrues-parse';
 
 // API pour récupérer les vigilances crues depuis Vigicrues
 // Source : https://www.vigicrues.gouv.fr/services/v1.1
@@ -51,18 +52,6 @@ const departementNames: Record<string, string> = {
   '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis',
   '94': 'Val-de-Marne', '95': "Val-d'Oise",
 };
-
-// Convertir le niveau de vigilance Vigicrues
-function parseNiveau(niveau: number | string): 'vert' | 'jaune' | 'orange' | 'rouge' {
-  const n = typeof niveau === 'string' ? parseInt(niveau) : niveau;
-  switch (n) {
-    case 1: return 'vert';
-    case 2: return 'jaune';
-    case 3: return 'orange';
-    case 4: return 'rouge';
-    default: return 'vert';
-  }
-}
 
 // Fonction pour récupérer et parser les données Vigicrues
 async function fetchVigicruesData(): Promise<VigicrueAlert[]> {

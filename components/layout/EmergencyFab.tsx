@@ -1,10 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 export default function EmergencyFab() {
   const [expanded, setExpanded] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const firstActionRef = useRef<HTMLAnchorElement>(null);
+
+  // Fermeture au clavier (Échap) + gestion du focus quand le menu est ouvert.
+  useEffect(() => {
+    if (!expanded) return;
+    firstActionRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setExpanded(false);
+        triggerRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [expanded]);
 
   return (
     <div className="fixed bottom-20 right-4 z-40">
@@ -14,12 +30,18 @@ export default function EmergencyFab() {
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black/20 z-30"
+            aria-hidden="true"
             onClick={() => setExpanded(false)}
           />
 
           {/* Quick actions */}
-          <div className="absolute bottom-16 right-0 z-40 space-y-2 mb-2">
+          <div
+            role="group"
+            aria-label="Numéros d'urgence"
+            className="absolute bottom-16 right-0 z-40 space-y-2 mb-2"
+          >
             <Link
+              ref={firstActionRef}
               href="tel:15"
               className="flex items-center gap-3 bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl shadow-lg transition-all animate-slide-up"
               onClick={() => setExpanded(false)}
@@ -60,6 +82,7 @@ export default function EmergencyFab() {
       {expanded ? (
         <Link
           href="tel:112"
+          aria-label="Appeler le 112 (numéro d'urgence européen)"
           className="relative z-40 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all animate-pulse-slow"
         >
           <div className="text-center">
@@ -68,9 +91,12 @@ export default function EmergencyFab() {
         </Link>
       ) : (
         <button
+          ref={triggerRef}
           onClick={() => setExpanded(true)}
           className="relative z-40 w-14 h-14 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg shadow-red-500/30 flex items-center justify-center transition-all active:scale-95"
-          aria-label="Urgences"
+          aria-label="Ouvrir les numéros d'urgence"
+          aria-expanded={expanded}
+          aria-haspopup="true"
         >
           <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

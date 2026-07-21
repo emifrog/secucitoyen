@@ -1,25 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getTrustedBaseUrl, sanitizeDepartmentCode } from '@/lib/validation';
+import type { UnifiedAlert } from '@/lib/types/api-responses';
 
 // API unifiée pour toutes les alertes
 // Combine : Météo-France (vigilance), Qualité de l'air, Risque incendie, Vigicrues, Météo des forêts
 
-export interface UnifiedAlert {
-  id: string;
-  type: string;
-  category: 'meteo' | 'pollution' | 'incendie' | 'inondation' | 'sanitaire';
-  level: 'vert' | 'jaune' | 'orange' | 'rouge';
-  title: string;
-  description: string;
-  department?: string;
-  departmentCode?: string;
-  startDate?: string;
-  endDate?: string;
-  updatedAt: string;
-  source: string;
-  advice: string[];
-  icon: string;
-}
+export type { UnifiedAlert };
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // 5 minutes

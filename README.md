@@ -318,6 +318,37 @@ Les notifications push alertent l'utilisateur en cas de vigilance orange ou roug
 | Numéros d'urgence | 12+ |
 | Sources d'alertes | 5 |
 
+## Déploiement, cron & monitoring
+
+### Variables d'environnement (production)
+Voir `.env.local.example`. Les indispensables :
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (secret, serveur uniquement)
+- `NEXT_PUBLIC_SITE_URL` = `https://secucitoyen.vercel.app`
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+- `NOTIFICATIONS_API_KEY`, `CRON_SECRET` (secrets forts, pas les placeholders)
+- `NEXT_PUBLIC_SENTRY_DSN` (+ `SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN` pour l'upload des sourcemaps)
+
+Appliquer aussi les migrations SQL de `supabase/migrations/` (dont `004_secure_rls.sql`).
+
+### Cron des notifications
+Le plan Vercel Hobby n'autorise pas de cron plus fréquent qu'une fois par jour.
+Le déclenchement se fait donc via **GitHub Actions** (`.github/workflows/cron-alerts.yml`,
+toutes les 15 min) qui appelle `/api/cron/check-alerts` avec `Authorization: Bearer $CRON_SECRET`.
+Secrets GitHub requis : `PRODUCTION_URL`, `CRON_SECRET`.
+
+> ⚠️ Les crons GitHub Actions sont **best-effort** (retards possibles) et sont
+> **désactivés après 60 j d'inactivité** du dépôt. Pour une app d'alerte, prévoir
+> un **déclencheur externe redondant** (cron-job.org, UptimeRobot…) pointant sur
+> le même endpoint avec le même `Bearer $CRON_SECRET`.
+
+### Monitoring
+- `/api/health` renvoie `status: "healthy" | "degraded"` + l'état des circuit breakers
+  par source. À surveiller via UptimeRobot (monitoring par **mot-clé** sur `"healthy"`)
+  pour être alerté d'une dégradation.
+- Erreurs applicatives : Sentry (client + serveur).
+- Trafic : Vercel Analytics.
+
 ## Licence
 
 MIT

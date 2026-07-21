@@ -5,23 +5,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui';
 import { alertLevels, alertTypes } from '@/lib/alertes';
 import { getSavedDepartment } from '@/lib/geolocation';
-
-interface UnifiedAlert {
-  id: string;
-  type: string;
-  category: 'meteo' | 'pollution' | 'incendie' | 'inondation' | 'sanitaire';
-  level: 'vert' | 'jaune' | 'orange' | 'rouge';
-  title: string;
-  description: string;
-  department?: string;
-  departmentCode?: string;
-  startDate?: string;
-  endDate?: string;
-  updatedAt: string;
-  source: string;
-  advice: string[];
-  icon: string;
-}
+import type { UnifiedAlert } from '@/lib/types/api-responses';
 
 const categoryLabels: Record<string, string> = {
   meteo: 'Météo',

@@ -2,18 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
-
-interface UnifiedAlert {
-  id: string;
-  type: string;
-  category: 'meteo' | 'pollution' | 'incendie' | 'inondation';
-  level: 'vert' | 'jaune' | 'orange' | 'rouge';
-  title: string;
-  department: string;
-  departmentCode: string;
-  source: string;
-  icon: string;
-}
+import type { UnifiedAlert } from '@/lib/types/api-responses';
 
 const severityConfig = {
   rouge: {

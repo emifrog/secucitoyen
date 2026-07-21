@@ -23,12 +23,13 @@ export const metadata: Metadata = {
     siteName: "SécuCitoyen",
     title: "SécuCitoyen - Sécurité citoyenne",
     description: "Numéros d'urgence, premiers secours, alertes météo et prévention. Tout pour votre sécurité au quotidien.",
-    images: [{ url: "/icons/icon-512x512.svg", width: 512, height: 512, alt: "SécuCitoyen" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "SécuCitoyen" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "SécuCitoyen",
     description: "Numéros d'urgence, premiers secours, alertes et prévention.",
+    images: ["/og-image.png"],
   },
   appleWebApp: {
     capable: true,
@@ -53,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

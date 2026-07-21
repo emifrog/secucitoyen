@@ -69,6 +69,28 @@ export interface OpenDataSoftDAERecord {
 // ========================
 // Réponses internes des routes API
 // ========================
+
+/**
+ * Alerte unifiée renvoyée par /api/alerts (source de vérité unique du type,
+ * consommée par la route et les composants d'affichage).
+ */
+export interface UnifiedAlert {
+  id: string;
+  type: string;
+  category: 'meteo' | 'pollution' | 'incendie' | 'inondation' | 'sanitaire';
+  level: 'vert' | 'jaune' | 'orange' | 'rouge';
+  title: string;
+  description: string;
+  department?: string;
+  departmentCode?: string;
+  startDate?: string;
+  endDate?: string;
+  updatedAt: string;
+  source: string;
+  advice: string[];
+  icon: string;
+}
+
 export interface AlertApiResponse {
   alerts: AlertItem[];
   sources?: Record<string, { status: string; count: number }>;
