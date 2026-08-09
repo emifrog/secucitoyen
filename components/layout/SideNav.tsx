@@ -39,7 +39,7 @@ export default function SideNav() {
     }`;
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen w-64 shrink-0 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-5 overflow-y-auto">
+    <aside data-testid="side-nav" className="hidden lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen w-64 shrink-0 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-5 overflow-y-auto">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 px-2 mb-6">
         <svg viewBox="0 0 36 36" className="w-8 h-8" aria-hidden="true">

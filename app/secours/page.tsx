@@ -64,7 +64,7 @@ export default function SecoursPage() {
                   {fiche.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h3 className="font-bold text-gray-800 dark:text-gray-100">{fiche.title}</h3>
                     <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${config.color}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />

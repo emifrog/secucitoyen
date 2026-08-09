@@ -100,6 +100,7 @@ export default function EmergencyFab() {
       ) : (
         <button
           ref={triggerRef}
+          data-testid="emergency-fab"
           onClick={() => setExpanded(true)}
           className="relative z-40 w-14 h-14 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg shadow-red-500/30 flex items-center justify-center transition-all active:scale-95"
           aria-label="Ouvrir les numéros d'urgence"

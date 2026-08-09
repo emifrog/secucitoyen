@@ -46,7 +46,7 @@ export default function ConseilsSaisonPage() {
                   {conseil.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h4 className="font-bold text-gray-800 dark:text-gray-100">{conseil.titre}</h4>
                     {conseil.urgence && (
                       <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs rounded-full">
