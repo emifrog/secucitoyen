@@ -1,7 +1,10 @@
 /**
  * @jest-environment node
  */
-import { POST as subscribePOST } from '@/app/api/notifications/subscribe/route';
+import {
+  POST as subscribePOST,
+  DELETE as subscribeDELETE,
+} from '@/app/api/notifications/subscribe/route';
 import { POST as sendPOST } from '@/app/api/notifications/send/route';
 
 // Mock de la couche Supabase (client admin) : évite toute vraie connexion.
@@ -21,16 +24,27 @@ jest.mock('web-push', () => ({
   default: { setVapidDetails: jest.fn(), sendNotification: jest.fn() },
 }));
 
-function postRequest(url: string, body: unknown, headers: Record<string, string> = {}) {
+// IP unique par requête : évite que le rate limiter (état de module partagé)
+// ne couple les tests entre eux.
+let ipSeq = 0;
+function jsonRequest(method: string, url: string, body: unknown, headers: Record<string, string> = {}) {
+  ipSeq += 1;
   return new Request(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', ...headers },
+    method,
+    headers: {
+      'content-type': 'application/json',
+      'x-forwarded-for': `203.0.113.${ipSeq}`,
+      ...headers,
+    },
     body: JSON.stringify(body),
   });
 }
+const postRequest = (url: string, body: unknown, headers: Record<string, string> = {}) =>
+  jsonRequest('POST', url, body, headers);
 
 beforeEach(() => {
   upsertMock.mockClear();
+  deleteMock.mockClear();
 });
 
 describe('POST /api/notifications/subscribe', () => {
@@ -79,6 +93,28 @@ describe('POST /api/notifications/subscribe', () => {
       })
     );
     expect(upsertMock.mock.calls[0][0]).toMatchObject({ department_code: null });
+  });
+});
+
+describe('DELETE /api/notifications/subscribe', () => {
+  it('rejette un endpoint hors allowlist (pas de suppression arbitraire)', async () => {
+    const res = await subscribeDELETE(
+      jsonRequest('DELETE', 'http://localhost/api/notifications/subscribe', {
+        endpoint: 'https://evil.example/hook',
+      })
+    );
+    expect(res.status).toBe(400);
+    expect(deleteMock).not.toHaveBeenCalled();
+  });
+
+  it('supprime une subscription pour un endpoint de push valide', async () => {
+    const res = await subscribeDELETE(
+      jsonRequest('DELETE', 'http://localhost/api/notifications/subscribe', {
+        endpoint: 'https://fcm.googleapis.com/fcm/send/valid-token',
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 });
 

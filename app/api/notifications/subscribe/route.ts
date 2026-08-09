@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { isAllowedPushEndpoint, sanitizeDepartmentCode } from '@/lib/validation';
+import { rateLimited } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
+
+// Endpoint public : plafond strict par IP (s'abonner/désabonner est rare).
+const RL = { key: 'subscribe', limit: 10, windowMs: 10 * 60 * 1000 };
 
 interface SubscribeRequest {
   subscription: PushSubscriptionJSON;
@@ -10,6 +14,9 @@ interface SubscribeRequest {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimited(request, RL);
+  if (limited) return limited;
+
   try {
     const body: SubscribeRequest = await request.json();
     const { subscription, departmentCode } = body;
@@ -62,13 +69,18 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const limited = rateLimited(request, RL);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const { endpoint } = body;
 
-    if (!endpoint) {
+    // Même garde que POST : seul un endpoint de push valide peut être ciblé,
+    // ce qui empêche d'utiliser DELETE comme outil de suppression arbitraire.
+    if (!isAllowedPushEndpoint(endpoint)) {
       return NextResponse.json(
-        { error: 'Endpoint requis' },
+        { error: 'Endpoint invalide' },
         { status: 400 }
       );
     }

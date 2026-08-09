@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTrustedBaseUrl, sanitizeDepartmentCode } from '@/lib/validation';
+import { rateLimited } from '@/lib/rate-limit';
 import type { UnifiedAlert } from '@/lib/types/api-responses';
 
 // API unifiée pour toutes les alertes
@@ -45,6 +46,11 @@ const alertAdvice: Record<string, string[]> = {
 };
 
 export async function GET(request: Request) {
+  // Entrée publique qui déclenche un fan-out vers 5+ APIs tierces : plafond par
+  // IP pour éviter l'épuisement des quotas (les circuit breakers protègent en aval).
+  const limited = rateLimited(request, { key: 'alerts', limit: 60, windowMs: 60 * 1000 });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchWithCircuitBreaker } from '@/lib/api-utils';
+import { rateLimited } from '@/lib/rate-limit';
 import type { OpenDataSoftDAEResponse, OpenDataSoftDAERecord } from '@/lib/types/api-responses';
 
 // API pour trouver les défibrillateurs (DAE) à proximité
@@ -34,6 +35,9 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export async function GET(request: Request) {
+  const limited = rateLimited(request, { key: 'dae', limit: 40, windowMs: 60 * 1000 });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');
