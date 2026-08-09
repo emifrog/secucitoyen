@@ -94,7 +94,7 @@ export default function HomePage() {
         {/* Quick Actions */}
         <section>
           <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Accès rapide</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href}>
                 <Card className="h-full hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">

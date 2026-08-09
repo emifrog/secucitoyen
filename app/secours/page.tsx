@@ -30,10 +30,10 @@ export default function SecoursPage() {
   const fiches = getFichesSummary();
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {/* Header */}
       <section>
-        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Premiers secours</h2>
+        <h2 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Premiers secours</h2>
         <p className="text-gray-600 dark:text-gray-400 text-center">
           15 fiches pratiques pour les gestes qui sauvent. Disponibles hors-ligne.
         </p>
@@ -54,7 +54,7 @@ export default function SecoursPage() {
       </section>
 
       {/* Liste des fiches */}
-      <section className="space-y-3">
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {fiches.map((fiche) => {
           const config = urgencyConfig[fiche.urgency];
           return (

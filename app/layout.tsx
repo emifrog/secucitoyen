@@ -76,8 +76,12 @@ export default function RootLayout({
             <SideNav />
             <div className="max-w-app md:max-w-2xl lg:max-w-none mx-auto lg:mx-0 w-full lg:flex-1 lg:min-w-0 min-h-screen bg-white dark:bg-slate-800 shadow-lg lg:shadow-none flex flex-col">
               <Header />
-              <main className="pb-20 lg:pb-10 flex-1">
-                {children}
+              <main className="pb-20 lg:pb-12 flex-1">
+                {/* Cap de largeur de lecture sur desktop (confort sur les pages
+                    de contenu ; les grilles internes se densifient en md:/lg:) */}
+                <div className="lg:mx-auto lg:max-w-3xl xl:max-w-4xl">
+                  {children}
+                </div>
               </main>
               <Footer />
               <EmergencyFab />

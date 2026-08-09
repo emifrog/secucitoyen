@@ -13,10 +13,10 @@ export default function PreventionPage() {
   const checklists = getChecklistsSummary();
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {/* Header */}
       <section>
-        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Prévention</h2>
+        <h2 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Prévention</h2>
         <p className="text-gray-600 dark:text-gray-400 text-center">
           Check-lists interactives pour sécuriser votre quotidien.
         </p>
@@ -28,6 +28,7 @@ export default function PreventionPage() {
       {/* Liste des check-lists */}
       <section className="space-y-3">
         <h3 className="font-semibold text-gray-800 dark:text-gray-100">Vos check-lists</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {checklists.map((checklist) => (
           <Link key={checklist.id} href={`/prevention/${checklist.id}`}>
             <Card className="flex items-center gap-4 hover:shadow-lg transition-all active:scale-[0.99]">
@@ -45,6 +46,7 @@ export default function PreventionPage() {
             </Card>
           </Link>
         ))}
+        </div>
       </section>
 
       {/* Conseil */}

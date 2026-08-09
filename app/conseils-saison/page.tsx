@@ -6,10 +6,10 @@ export default function ConseilsSaisonPage() {
   const saisonActuelle = getSaisonActuelle();
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {/* Header */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+        <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
           Conseils saisonniers
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
@@ -37,6 +37,7 @@ export default function ConseilsSaisonPage() {
           Conseils {saisonActuelle.nom.toLowerCase()}
         </h3>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {saisonActuelle.conseils.map((conseil) => (
           <Link key={conseil.id} href={`/conseils-saison/${conseil.id}`}>
             <Card className="hover:shadow-lg transition-all active:scale-[0.99]">
@@ -67,6 +68,7 @@ export default function ConseilsSaisonPage() {
             </Card>
           </Link>
         ))}
+        </div>
       </section>
 
       {/* Autres saisons */}
@@ -75,7 +77,7 @@ export default function ConseilsSaisonPage() {
           Autres saisons
         </h3>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {saisons
             .filter((s) => s.id !== saisonActuelle.id)
             .map((saison) => (
