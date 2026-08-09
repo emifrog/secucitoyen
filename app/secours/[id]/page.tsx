@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getFicheById, fichesSecours } from '@/lib/fiches-secours';
 import FicheContent from '@/components/secours/FicheContent';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 interface PageProps {
   params: { id: string };
@@ -52,7 +53,7 @@ export default function FichePage({ params }: PageProps) {
     <div className="pb-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       {/* Header fixe */}
       <div className="sticky top-0 z-10 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
