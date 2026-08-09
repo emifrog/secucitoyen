@@ -11,8 +11,8 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-primary dark:bg-slate-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-primary dark:border-slate-700">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+      <header className="bg-primary dark:bg-slate-900 text-white px-4 py-3 flex items-center justify-between lg:justify-end sticky top-0 z-50 border-b border-primary dark:border-slate-700">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity lg:hidden">
           <div className="w-9 h-9 relative">
             {/* Logo bouclier avec croix */}
             <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -45,7 +45,7 @@ export default function Header() {
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors lg:hidden"
             aria-label="Menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

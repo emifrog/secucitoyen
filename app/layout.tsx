@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header, BottomNav, InstallPrompt } from "@/components/layout";
+import { Header, BottomNav, SideNav, InstallPrompt } from "@/components/layout";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/providers";
 import EmergencyFab from "@/components/layout/EmergencyFab";
@@ -71,15 +71,19 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased bg-gray-50 dark:bg-slate-900 overflow-x-hidden`}>
         <ThemeProvider>
-          <div className="max-w-app mx-auto min-h-screen bg-white dark:bg-slate-800 shadow-lg flex flex-col">
-            <Header />
-            <main className="pb-20 flex-1">
-              {children}
-            </main>
-            <Footer />
-            <EmergencyFab />
-            <InstallPrompt />
-            <BottomNav />
+          {/* Shell : colonne unique sur mobile/tablette, sidebar + contenu sur desktop */}
+          <div className="lg:mx-auto lg:flex lg:max-w-6xl">
+            <SideNav />
+            <div className="max-w-app md:max-w-2xl lg:max-w-none mx-auto lg:mx-0 w-full lg:flex-1 lg:min-w-0 min-h-screen bg-white dark:bg-slate-800 shadow-lg lg:shadow-none flex flex-col">
+              <Header />
+              <main className="pb-20 lg:pb-10 flex-1">
+                {children}
+              </main>
+              <Footer />
+              <EmergencyFab />
+              <InstallPrompt />
+              <BottomNav />
+            </div>
           </div>
           <Analytics />
         </ThemeProvider>

@@ -34,8 +34,9 @@ export default function EmergencyFab() {
       )}
 
       {/* Wrapper centré : aligne le FAB sur la colonne de l'app (max-w-app),
-          transparent aux clics sauf sur le bouton lui-même. */}
-      <div className="fixed inset-x-0 bottom-20 z-40 pointer-events-none">
+          transparent aux clics sauf sur le bouton lui-même. Masqué sur desktop
+          (la sidebar fournit l'accès urgence). */}
+      <div className="fixed inset-x-0 bottom-20 z-40 pointer-events-none lg:hidden">
         <div className="relative max-w-app mx-auto">
           <div className="absolute right-4 bottom-0 pointer-events-auto">
       {/* Menu étendu */}
