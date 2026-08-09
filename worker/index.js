@@ -1,6 +1,15 @@
 // Custom Service Worker - Push Notifications Handler
 // Ce fichier est automatiquement injecté par next-pwa dans le service worker
 
+// Mise à jour à la demande : le client envoie SKIP_WAITING quand l'utilisateur
+// accepte la nouvelle version (voir UpdatePrompt). Le SW en attente s'active
+// alors immédiatement, ce qui déclenche `controllerchange` côté page → reload.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Gestion des événements push
 self.addEventListener('push', (event) => {
   if (!event.data) return;

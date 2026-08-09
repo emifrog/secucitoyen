@@ -9,7 +9,10 @@ const analyzeBundles = withBundleAnalyzer({
 const pwaConfig = withPWA({
   dest: 'public',
   register: true,
-  skipWaiting: true,
+  // skipWaiting piloté par l'utilisateur via UpdatePrompt (message SKIP_WAITING
+  // au worker) : la nouvelle version attend une confirmation « Recharger »
+  // plutôt que de s'activer silencieusement.
+  skipWaiting: false,
   disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
     {
@@ -100,7 +103,9 @@ const csp = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  'upgrade-insecure-requests',
+  // NB : pas de `upgrade-insecure-requests` — HSTS force déjà le HTTPS en prod,
+  // toutes les sous-ressources sont same-origin, et cette directive casse
+  // l'app sous Safari/webkit sur les origines HTTP (dev, CI e2e, previews HTTP).
 ].join('; ');
 
 const securityHeaders = [

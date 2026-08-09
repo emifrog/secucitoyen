@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header, BottomNav, SideNav, InstallPrompt } from "@/components/layout";
+import { Header, BottomNav, SideNav, InstallPrompt, UpdatePrompt } from "@/components/layout";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/providers";
 import EmergencyFab from "@/components/layout/EmergencyFab";
@@ -86,6 +86,7 @@ export default function RootLayout({
               <Footer />
               <EmergencyFab />
               <InstallPrompt />
+              <UpdatePrompt />
               <BottomNav />
             </div>
           </div>
