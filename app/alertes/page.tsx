@@ -10,7 +10,6 @@ import DepartmentSelector from '@/components/alertes/DepartmentSelector';
 import VigilanceMap from '@/components/alertes/VigilanceMap';
 import NotificationPrompt from '@/components/alertes/NotificationPrompt';
 
-export const revalidate = 300; // Revalidate every 5 minutes
 
 export default function AlertesPage() {
   return (

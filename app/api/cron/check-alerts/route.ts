@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { getTrustedBaseUrl, sanitizeDepartmentCode } from '@/lib/validation';
+import { sanitizeDepartmentCode } from '@/lib/validation';
 import { isValidSecret } from '@/lib/api-auth';
+import { aggregateAlerts, OFFICIAL_PUSH_SOURCES } from '@/lib/sources/aggregate';
+import { VIGILANCE_SOURCE } from '@/lib/sources/vigilance';
+import type { UnifiedAlert } from '@/lib/types/api-responses';
+
+// Cron de notifications (GitHub Actions toutes les 15 min) : pousse les
+// vigilances orange/rouge des sources OFFICIELLES aux abonnés du département.
+//
+// Idempotence : chaque alerte est « réclamée » dans sent_notifications
+// (UNIQUE alert_id, migration 005) AVANT l'envoi. Deux runs concurrents ne
+// peuvent donc pas envoyer deux fois la même alerte, et un run interrompu ne
+// renvoie pas ce qui a déjà été réclamé.
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
@@ -14,27 +26,60 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 }
 
-interface AlertData {
-  id: string;
-  type: string;
-  level: 'jaune' | 'orange' | 'rouge';
-  title: string;
-  description: string;
-  department?: string;
-  departmentCode?: string;
-  source?: string;
+// Envois par lots : borne la concurrence (quotas des services push) sans
+// sérialiser complètement (un abonné lent ne bloque plus les autres).
+const SEND_CONCURRENCY = 10;
+
+interface PushRow {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
 }
 
-/**
- * Seules les sources qui émettent des vigilances officielles peuvent déclencher
- * une notification push. Les indices calculés par l'app (risque incendie « IFM »
- * / « FWI », qualité de l'air modélisée) et toute donnée dégradée ou simulée
- * restent consultables dans l'app mais ne sont jamais poussés.
- */
-const OFFICIAL_PUSH_SOURCES = new Set(['Météo-France', 'Vigicrues']);
+interface SendStats {
+  sent: number;
+  failed: number;
+  expiredEndpoints: string[];
+}
+
+async function sendInBatches(subscriptions: PushRow[], payload: string): Promise<SendStats> {
+  const stats: SendStats = { sent: 0, failed: 0, expiredEndpoints: [] };
+
+  for (let i = 0; i < subscriptions.length; i += SEND_CONCURRENCY) {
+    const batch = subscriptions.slice(i, i + SEND_CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map((sub) => webpush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload))
+    );
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        stats.sent++;
+        return;
+      }
+      stats.failed++;
+      const statusCode = (result.reason as { statusCode?: number })?.statusCode;
+      if (statusCode === 404 || statusCode === 410) {
+        stats.expiredEndpoints.push(batch[index].endpoint);
+      }
+    });
+  }
+
+  return stats;
+}
+
+function buildPayload(alert: UnifiedAlert): string {
+  const levelEmoji: Record<string, string> = { jaune: '🟡', orange: '🟠', rouge: '🔴' };
+  return JSON.stringify({
+    title: `${levelEmoji[alert.level] ?? ''} ${alert.title}`.trim(),
+    body: alert.department ? `${alert.description} — ${alert.department}` : alert.description,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    url: `/alertes/${encodeURIComponent(alert.id)}`,
+    tag: `alert-${alert.id}`,
+    requireInteraction: alert.level === 'rouge',
+  });
+}
 
 export async function GET(request: Request) {
-  // Vérification : soit Vercel Cron, soit API key manuelle
+  // Vérification : soit le cron (Bearer CRON_SECRET), soit la clé API manuelle
   const authHeader = request.headers.get('authorization');
   const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const isCron = isValidSecret(bearer, process.env.CRON_SECRET);
@@ -54,110 +99,96 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. Récupérer les alertes actuelles (orange et rouge uniquement)
-    const baseUrl = getTrustedBaseUrl(request);
-    const alertsResponse = await fetch(`${baseUrl}/api/alerts`);
-    const alertsData = await alertsResponse.json();
+    // 1. Alertes sévères des sources officielles (appel direct, en parallèle)
+    const aggregate = await aggregateAlerts({ severeOnly: true });
+    const vigilanceDown = aggregate.sourceStatus[VIGILANCE_SOURCE] === 'degraded';
 
-    const severeAlerts: AlertData[] = (alertsData.alerts || []).filter(
-      (a: AlertData) =>
-        (a.level === 'orange' || a.level === 'rouge') &&
-        OFFICIAL_PUSH_SOURCES.has(a.source ?? '')
+    const severeAlerts = aggregate.alerts.filter(
+      (a) => (a.level === 'orange' || a.level === 'rouge') && OFFICIAL_PUSH_SOURCES.has(a.source)
     );
 
-    if (severeAlerts.length === 0) {
-      return NextResponse.json({ message: 'Aucune alerte sévère', sent: 0 });
-    }
-
-    // 2. Vérifier quelles alertes ont déjà été envoyées
-    const alertIds = severeAlerts.map((a) => a.id);
-    const { data: alreadySent } = await supabase
-      .from('sent_notifications')
-      .select('alert_id')
-      .in('alert_id', alertIds);
-
-    const sentIds = new Set((alreadySent || []).map((s) => s.alert_id));
-    const newAlerts = severeAlerts.filter((a) => !sentIds.has(a.id));
-
-    if (newAlerts.length === 0) {
-      return NextResponse.json({ message: 'Toutes les alertes ont déjà été envoyées', sent: 0 });
-    }
-
-    // 3. Envoyer les notifications pour chaque nouvelle alerte
     let totalSent = 0;
     let totalFailed = 0;
+    let claimed = 0;
+    let alreadySent = 0;
+    let skippedNoDept = 0;
+    let claimErrors = 0;
     const expiredEndpoints: string[] = [];
 
-    for (const alert of newAlerts) {
-      // Récupérer les abonnés ciblés
-      let query = supabase.from('push_subscriptions').select('*');
+    for (const alert of severeAlerts) {
+      // Une alerte sans département n'est jamais diffusée à tous les abonnés
+      // nationaux (ciblage impossible → risque de spam massif).
       const safeDept = sanitizeDepartmentCode(alert.departmentCode);
-      if (safeDept) {
-        query = query.or(`department_code.eq.${safeDept},department_code.is.null`);
+      if (!safeDept) {
+        skippedNoDept++;
+        continue;
       }
 
-      const { data: subscriptions } = await query;
+      // 2. Réclamer l'alerte AVANT l'envoi (insertion ignorée si déjà présente).
+      const { data: inserted, error: claimError } = await supabase
+        .from('sent_notifications')
+        .upsert(
+          { alert_id: alert.id, department_code: safeDept, level: alert.level },
+          { onConflict: 'alert_id', ignoreDuplicates: true }
+        )
+        .select('alert_id');
+
+      if (claimError) {
+        console.error('Erreur réclamation alerte', alert.id, claimError);
+        claimErrors++;
+        continue;
+      }
+      if (!inserted || inserted.length === 0) {
+        alreadySent++;
+        continue;
+      }
+      claimed++;
+
+      // 3. Abonnés du département + abonnés nationaux
+      const { data: subscriptions, error: subsError } = await supabase
+        .from('push_subscriptions')
+        .select('endpoint, keys')
+        .or(`department_code.eq.${safeDept},department_code.is.null`);
+
+      if (subsError) {
+        console.error('Erreur lecture abonnés', subsError);
+        continue;
+      }
       if (!subscriptions || subscriptions.length === 0) continue;
 
-      const levelEmoji: Record<string, string> = { jaune: '🟡', orange: '🟠', rouge: '🔴' };
-      const payload = JSON.stringify({
-        title: `${levelEmoji[alert.level]} ${alert.title}`,
-        body: alert.department
-          ? `${alert.description} — ${alert.department}`
-          : alert.description,
-        icon: '/icons/icon-192x192.svg',
-        badge: '/icons/icon-72x72.svg',
-        url: `/alertes/${alert.id}`,
-        tag: `alert-${alert.id}`,
-        requireInteraction: alert.level === 'rouge',
-      });
-
-      // Envoyer à chaque abonné
-      for (const sub of subscriptions) {
-        try {
-          await webpush.sendNotification(
-            { endpoint: sub.endpoint, keys: sub.keys },
-            payload
-          );
-          totalSent++;
-        } catch (err: unknown) {
-          const error = err as { statusCode?: number };
-          if (error.statusCode === 404 || error.statusCode === 410) {
-            expiredEndpoints.push(sub.endpoint);
-          }
-          totalFailed++;
-        }
-      }
-
-      // Marquer l'alerte comme envoyée
-      await supabase.from('sent_notifications').insert({
-        alert_id: alert.id,
-        department_code: alert.departmentCode || null,
-        level: alert.level,
-      });
+      const stats = await sendInBatches(subscriptions as PushRow[], buildPayload(alert));
+      totalSent += stats.sent;
+      totalFailed += stats.failed;
+      expiredEndpoints.push(...stats.expiredEndpoints);
     }
 
     // 4. Nettoyer les subscriptions expirées
     if (expiredEndpoints.length > 0) {
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .in('endpoint', expiredEndpoints);
+      await supabase.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
     }
 
     // 5. Nettoyer les anciennes notifications envoyées (> 7 jours)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    await supabase
-      .from('sent_notifications')
-      .delete()
-      .lt('sent_at', sevenDaysAgo);
+    await supabase.from('sent_notifications').delete().lt('sent_at', sevenDaysAgo);
 
-    return NextResponse.json({
-      newAlerts: newAlerts.length,
+    const body = {
+      severe: severeAlerts.length,
+      newAlerts: claimed,
+      alreadySent,
+      skippedNoDept,
+      claimErrors,
       sent: totalSent,
       failed: totalFailed,
       expired: expiredEndpoints.length,
-    });
+      degraded: aggregate.degraded,
+      sourceStatus: aggregate.sourceStatus,
+      ...(vigilanceDown ? { error: 'Vigilance Météo-France indisponible' } : {}),
+    };
+
+    // Vigilance Météo-France indisponible : le travail possible a été fait,
+    // mais on renvoie 502 pour que `curl -f` fasse échouer le workflow et que
+    // l'incident soit visible (avant : 200 « Aucune alerte sévère »).
+    return NextResponse.json(body, { status: vigilanceDown ? 502 : 200 });
   } catch (error) {
     console.error('Erreur cron check-alerts:', error);
     return NextResponse.json(

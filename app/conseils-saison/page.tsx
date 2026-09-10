@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { Card } from '@/components/ui';
 import { saisons, getSaisonActuelle } from '@/lib/conseils-saisonniers';
 
+// La saison est calculée côté serveur : sans revalidation, elle resterait
+// figée à la date du build jusqu'au déploiement suivant.
+export const revalidate = 86400;
+
 export default function ConseilsSaisonPage() {
   const saisonActuelle = getSaisonActuelle();
 

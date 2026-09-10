@@ -72,96 +72,115 @@ Trois causes cumulées, toutes corrigées (le worker n'a jamais fonctionné en p
 
 ---
 
-## Phase 2 — Chaîne d'alertes et données (une à deux semaines)
+## Phase 2 — Chaîne d'alertes et données — FAITE le 10/09/2026
+
+Validation : `tsc` et `next lint` sans erreur, 166 tests Jest (47 nouveaux : agrégateur,
+départements, géolocalisation, seuils AQI, disjoncteur, validation push), suite Playwright
+sur le build de production. Deux actions restent à faire hors code (déclencheur externe,
+migration 005 à appliquer sur Supabase).
 
 ### 2.1 Page détail d'alerte sur données réelles — ÉLEVÉ
 
-- [ ] `app/alertes/[id]/page.tsx:17-19` : supprimer le délai artificiel et la recherche dans `mockAlerts` ; charger `/api/alerts?dept=<dept sauvegardé>` et filtrer par `params.id`, ou passer l'alerte via l'état de navigation.
-- [ ] `lib/alertes.ts:326-354` : supprimer `mockAlerts`.
-- [ ] Ajouter `generateMetadata` à la page.
+- [x] `app/alertes/[id]/page.tsx` : charge `/api/alerts?dept=<dept sauvegardé>` puis, à défaut, la vue nationale ; recherche par identifiant ; `AbortController` au démontage.
+- [x] `lib/alertes.ts` : `mockAlerts` supprimé.
+- [ ] `generateMetadata` : impossible sur une page `'use client'` → à faire avec le découpage serveur/client de la Phase 3 (3.3).
 
 ### 2.2 Géolocalisation fiable — ÉLEVÉ
 
-- [ ] `lib/geolocation.ts` : implémenter le géocodage inverse via `https://geo.api.gouv.fr/communes?lat=&lon=&fields=departement&format=json` ; garder les rectangles uniquement en secours hors-ligne.
-- [ ] Ajouter les départements 971 à 976 dans `lib/geolocation.ts` et `components/alertes/DepartmentSelector.tsx:23-49`.
-- [ ] `components/alertes/DepartmentSelector.tsx:113-115` : afficher « département estimé, vérifiez » au lieu de « (GPS) ».
-- [ ] `__tests__/lib/geolocation.test.ts` : réécrire avec des cas exacts (Neuilly → 92, Lyon → 69, Vincennes → 94, Pointe-à-Pitre → 971, Saint-Denis Réunion → 974) et supprimer les assertions `not.toBeNull()`.
+- [x] Géocodage inverse officiel via la nouvelle route `app/api/geocode/route.ts` (geo.api.gouv.fr, coordonnées arrondies à 3 décimales, cache 24 h, rate limit, disjoncteur `geo-api-gouv`) ; `lib/geolocation.ts` réécrit : `resolveDepartmentFromCoords()` = API d'abord, plus proche point de référence en repli avec `estimated: true`. Les rectangles chevauchants ont disparu.
+- [x] DROM (971, 972, 973, 974, 976) présents dans `lib/departements.ts` ; le sélecteur propose la liste complète via un `<select>` en plus des raccourcis.
+- [x] `components/alertes/DepartmentSelector.tsx` : « (GPS) » quand l'API a répondu, « (estimé, vérifiez) » + bandeau explicatif en repli ; support géoloc évalué après montage (plus de risque d'hydratation).
+- [x] `__tests__/lib/geolocation.test.ts` réécrit (API mockée : Neuilly → 92 ; repli : Lyon → 69, Pointe-à-Pitre → 971, La Réunion → 974 ; code invalide ignoré) ; `__tests__/lib/departements.test.ts` ajouté (101 entrées, codes valides, 13 cas de plus proche point).
 
 ### 2.3 Indice feu étiqueté comme estimation — ÉLEVÉ
 
-- [ ] `app/api/meteo-forets/route.ts:115,132`, `app/api/fire-risk/route.ts:228`, `app/api/alerts/route.ts:257` : remplacer « Météo des forêts » / « Calcul FWI » par « Estimation SécuCitoyen (non officielle) ».
-- [ ] `app/api/alerts/route.ts:192-194` : plafonner le niveau incendie à `orange` (pas de push rouge sur un calcul maison).
-- [ ] `lib/fire-index.ts:59` : retirer « Interdiction possible de certains massifs » ; ajouter un lien vers le produit officiel Météo-France.
+- [x] Source `Estimation SécuCitoyen (non officielle)` (`lib/sources/meteo-forets.ts`, `lib/sources/fire-risk.ts`) ; titres « Risque incendie estimé » ; lien vers meteofrance.com/meteo-des-forets dans les conseils et les réponses API.
+- [x] Plafonné à orange : `foretNiveauToLevel()` dans l'agrégateur et `calculateFireRiskLevel()` ne renvoient jamais rouge ; le cron n'envoie de toute façon que les sources officielles.
+- [x] `lib/fire-index.ts` : descriptions marquées « (estimation) », renvoi vers la préfecture et la Météo des forêts.
 
 ### 2.4 Seuils qualité de l'air — ÉLEVÉ
 
-- [ ] `app/api/air-quality/route.ts:53-58` : passer aux bandes de l'indice européen : vert ≤ 40, jaune ≤ 60, orange ≤ 80, rouge > 80.
-- [ ] `app/api/air-quality/route.ts:4` : corriger le commentaire (source CAMS via Open-Meteo, pas ATMO France).
-- [ ] `app/api/air-quality/route.ts` : valider `lat`/`lon` (rejeter `NaN`), arrondir à 2 décimales avant l'appel amont.
-- [ ] Ajouter un test unitaire sur la fonction de niveau.
+- [x] `lib/sources/air-quality.ts` : bandes EAQI (vert ≤ 40, jaune ≤ 60, orange ≤ 80, rouge > 80) ; commentaire corrigé (CAMS via Open-Meteo).
+- [x] lat/lon validés (bornes, `NaN` rejeté) et arrondis à 2 décimales ; département inconnu → aucune donnée (plus de repli sur Paris).
+- [x] `__tests__/lib/air-quality-index.test.ts`.
 
 ### 2.5 Cron idempotent et robuste — ÉLEVÉ
 
-- [ ] Nouvelle migration `supabase/migrations/005_sent_notifications_unique.sql` : `ALTER TABLE sent_notifications ADD CONSTRAINT sent_notifications_alert_id_key UNIQUE (alert_id);`
-- [ ] `app/api/cron/check-alerts/route.ts:63-73,122-126` : insérer **avant** l'envoi avec `upsert(..., { onConflict: 'alert_id', ignoreDuplicates: true })` et n'envoyer que si la ligne a été créée.
-- [ ] `app/api/cron/check-alerts/route.ts:50-51` : vérifier `alertsResponse.ok` ; renvoyer un statut 502 sinon (pour faire échouer `curl -f`).
-- [ ] `app/api/cron/check-alerts/route.ts:105-119` : envoyer par lots (concurrence bornée à 10 via `Promise.allSettled`) avec un budget de temps.
-- [ ] `app/api/cron/check-alerts/route.ts:83-86` : ne pas diffuser à tous les abonnés nationaux une alerte sans `departmentCode`.
-- [ ] `vercel.json` : définir `maxDuration` pour `/api/cron/check-alerts` et `/api/alerts`.
-- [ ] `.github/workflows/cron-alerts.yml` : ajouter `permissions: {}`, `concurrency: { group: cron-alerts, cancel-in-progress: false }`, `timeout-minutes: 5`, un step `if: failure()` qui ouvre ou commente une issue ; passer `CRON_SECRET` via `env:` et `PRODUCTION_URL` via `vars.`.
-- [ ] Mettre en place le déclencheur externe redondant (cron-job.org ou UptimeRobot) déjà suggéré dans le README.
+- [x] `supabase/migrations/005_sent_notifications_unique.sql` : dédoublonnage puis `UNIQUE (alert_id)`.
+- [x] `app/api/cron/check-alerts/route.ts` réécrit : `upsert(..., { onConflict: 'alert_id', ignoreDuplicates: true }).select()` **avant** l'envoi, envoi uniquement si la ligne a été créée.
+- [x] Appel direct de l'agrégateur (plus de `fetch` HTTP vers soi-même) ; statut 502 si la vigilance Météo-France est indisponible (le workflow échoue et l'incident est visible).
+- [x] Envois par lots de 10 (`Promise.allSettled`).
+- [x] Alerte sans département : ignorée et comptée (`skippedNoDept`), jamais diffusée à tous les abonnés nationaux.
+- [x] `maxDuration` : défini par configuration de segment (`export const maxDuration = 60` sur le cron, `30` sur `/api/alerts`) plutôt que dans `vercel.json` (équivalent, et versionné avec la route).
+- [x] `.github/workflows/cron-alerts.yml` : `permissions` (contents: read, issues: write), `concurrency`, `timeout-minutes: 5`, secret via `env:`, `PRODUCTION_URL` lu depuis `vars.` (secret encore accepté), code HTTP vérifié, step `if: failure()` qui ouvre ou commente une issue `cron-alerts`.
+- [ ] **Action manuelle** : appliquer la migration 005 sur Supabase, créer la variable de dépôt `PRODUCTION_URL`, et mettre en place un déclencheur externe redondant (cron-job.org ou UptimeRobot) sur `/api/cron/check-alerts`.
+
+### 2.5 bis Défibrillateurs : la source amont n'a jamais fonctionné — CRITIQUE (découvert en Phase 2)
+
+Le test de fumée après la Phase 1 a révélé que la route DAE renvoyait 503 en permanence :
+le jeu de données `georef-france-defibrillateur-automatique-externe-dae` **n'existe pas** sur
+OpenDataSoft et la clause `geo_point_2d within (...)` est une syntaxe ODSQL invalide. Avant la
+Phase 1, chaque recherche de DAE affichait donc les défibrillateurs fictifs ; la fonctionnalité
+n'a jamais interrogé de données réelles.
+
+- [x] `lib/sources/defibrillateurs.ts` (nouveau) + `app/api/defibrillateurs/route.ts` réduite à une enveloppe : seul jeu national interrogeable par rayon, `osm-france-defibrillator` (27 943 DAE, OpenStreetMap, ODbL, schéma Géo'DAE) avec `within_distance(meta_geo_point, geom'POINT(lon lat)', Nm)` ; champs mappés (`name`, `adr_num`+`adr_voie`, `com_nom`, `com_cp`, `acc`/`acc_lib`, `disp_j`/`disp_h`, `etat_fonct`, `meta_osm_id`) ; coordonnées arrondies à 3 décimales pour le cache ; `Cache-Control` 1 h ; source et attribution renvoyées.
+- [x] `lib/types/api-responses.ts` : `OpenDataSoftDAERecord` aligné sur le schéma réel.
+- [x] `app/defibrillateurs/page.tsx` : bandeau « données contributives (OpenStreetMap), le régulateur du 15/112 connaît les DAE officiels ».
+- [x] `__tests__/api/defibrillateurs.test.ts` : mapping, filtre rayon, tri, bornes, 400, 503 sans DAE fictif.
+- [ ] Vérifié en production après déploiement : une recherche renvoie des DAE réels (test de fumée local OK : 171 DAE dans 1,5 km autour de Notre-Dame).
+- [ ] Si la base officielle Géo'DAE (geodae.atlasante.fr) ouvre une API de requête, la préférer aux données OSM.
 
 ### 2.6 Validation des abonnements push — ÉLEVÉ
 
-- [ ] `app/api/notifications/subscribe/route.ts:25-38` : valider `keys.p256dh` (`^[A-Za-z0-9_-]{87,88}$`) et `keys.auth` (`^[A-Za-z0-9_-]{22}$`) ; rejeter un corps > 4 Ko.
-- [ ] Purge SQL one-shot des endpoints hors allowlist : `DELETE FROM push_subscriptions WHERE endpoint !~ '^https://(.*\.)?(push\.services\.mozilla\.com|fcm\.googleapis\.com|push\.apple\.com|notify\.windows\.com)/';` (adapter à l'allowlist de `lib/validation.ts:32-60`).
-- [ ] `app/api/notifications/send/route.ts:43-50,82-90` : valider `level` (vert/jaune/orange/rouge), plafonner titre et corps (payload < 4 Ko).
+- [x] `app/api/notifications/subscribe/route.ts` : `p256dh` (`^[A-Za-z0-9_-]{87,88}$`) et `auth` (`^[A-Za-z0-9_-]{22}$`) obligatoires, seules ces deux clés sont stockées, corps > 4 Ko → 413, JSON invalide → 400. Tests ajoutés.
+- [x] Purge SQL des endpoints hors allowlist et des clés au mauvais format : incluse dans la migration 005 (même liste de suffixes que `lib/validation.ts`).
+- [x] `app/api/notifications/send/route.ts` : `level` validé, titre ≤ 120 et corps ≤ 500 caractères, `tag` assaini, icônes PNG.
 
 ### 2.7 Agrégateur d'alertes — ÉLEVÉ
 
-- [ ] Créer `lib/sources/vigilance.ts`, `lib/sources/air-quality.ts`, `lib/sources/vigicrues.ts`, `lib/sources/meteo-forets.ts`, `lib/sources/fire-risk.ts` : fonctions pures `fetchX(dept?)` retournant `UnifiedAlert[]`.
-- [ ] `app/api/alerts/route.ts:68-233` : appeler ces fonctions directement via `Promise.allSettled` au lieu de cinq `fetch` HTTP séquentiels vers ses propres routes.
-- [ ] `app/api/meteo-forets/route.ts:63-106` et `app/api/fire-risk/route.ts:180-219` : paralléliser les boucles départementales.
-- [ ] `app/api/alerts/route.ts` : ajouter `Cache-Control: s-maxage=300, stale-while-revalidate=600` sur la réponse.
-- [ ] Supprimer les exports `revalidate` contradictoires avec `dynamic = 'force-dynamic'` (`alerts:12`, `vigilance:84`, `air-quality:51`, `fire-risk:44`) et `app/alertes/page.tsx:13`.
-- [ ] `app/api/vigilance/route.ts:97` : filtrer côté API sur `color_id > 2` pour le cron, ou paginer au-delà de `limit=100`.
+- [x] `lib/sources/{types,vigilance,air-quality,vigicrues,meteo-forets,fire-risk,aggregate}.ts` : chaque source est une fonction pure (`SourceResult<T>` : `items`, `source`, `degraded`, `error`), l'agrégateur `aggregateAlerts()` les appelle en parallèle via `Promise.allSettled` et renvoie `alerts`, `sources`, `degraded`, `sourceStatus`.
+- [x] `app/api/alerts/route.ts` réduit à une enveloppe (rate limit, validation, `aggregateAlerts`, `Cache-Control: s-maxage=300, stale-while-revalidate=600`). Les cinq routes sources deviennent des enveloppes avec rate limit et `Cache-Control`.
+- [x] Boucles départementales de meteo-forets et fire-risk parallélisées (`Promise.allSettled`) ; en vue par département, une seule requête Open-Meteo au lieu de 29.
+- [x] Exports `revalidate` contradictoires supprimés (routes réécrites, `app/alertes/page.tsx`).
+- [x] `fetchVigilance({ minLevel: 'orange' })` : le cron demande `color_id>2` (plus de troncature des jaunes en épisode national).
+- [x] `__tests__/lib/aggregate.test.ts` : agrégation par département, plafonnement incendie, bandes AQI, dégradation sur exception et sur 5xx, `severeOnly`, crues en vue nationale.
 
 ### 2.8 Disjoncteur et retry — ÉLEVÉ
 
-- [ ] `lib/api-utils.ts:42-49,105-115` : compter `!response.ok` comme un échec du disjoncteur.
-- [ ] `lib/api-utils.ts:27-34` : déplacer `clearTimeout` dans un `finally`.
-- [ ] `lib/api-utils.ts:53-61` : aligner le commentaire et le comportement sur les aborts.
-- [ ] Tests : half-open et remise à zéro du disjoncteur avec `jest.useFakeTimers()`.
+- [x] `lib/api-utils.ts` : une réponse 5xx persistante compte comme un échec de la source (le circuit s'ouvre enfin sur une source en 503 continu) ; 4xx jamais comptée.
+- [x] `clearTimeout` dans un `finally` (plus de timer pendant après un rejet).
+- [x] Commentaires alignés : un timeout est retenté comme une erreur réseau.
+- [x] Tests : ouverture sur 5xx, 4xx ignorées, half-open et fermeture à 5 min (fake timers), aucun timer pendant.
 
 ### 2.9 Fiches de secours — ÉLEVÉ / MOYEN
 
-- [ ] `lib/fiches-secours.ts:85-139` (étouffement) : ajouter la section « Nourrisson (moins d'un an) » : 5 tapes dorsales puis 5 compressions thoraciques, à plat ventre sur l'avant-bras, jamais de compressions abdominales.
-- [ ] `lib/fiches-secours.ts:32` : retirer « Aucun pouls perceptible » (la prise de pouls n'est pas recommandée aux non-soignants).
-- [ ] `lib/fiches-secours.ts:172-175` : retirer « surélevez le membre » (abandonné depuis 2015).
-- [ ] `lib/fiches-secours.ts:220` : remplacer « dans les 30 minutes » par « utile jusqu'à 3 heures après la brûlure ».
-- [ ] `lib/fiches-secours.ts:302` : nuancer la PLS et le rachis (les voies aériennes priment chez l'inconscient qui respire).
-- [ ] `lib/fiches-secours.ts:533` : remplacer « avec du sable » par « avec une carte rigide ou une pince, rincer à l'eau de mer ».
-- [ ] `lib/alertes.ts:181` : corriger la coquille « Mouiller-vous ».
+- [x] Étouffement : étape « Nourrisson (moins d'un an) » (tapes dorsales + compressions thoraciques à deux doigts, jamais abdominales), interdit ajouté, description mise à jour.
+- [x] Arrêt cardiaque : « Aucun pouls perceptible » remplacé par « Ne cherchez pas le pouls ».
+- [x] Hémorragie : « surélevez » retiré, étape « Allongez et couvrez ».
+- [x] Brûlure : refroidissement utile jusqu'à 3 heures.
+- [x] PLS : nuance traumatisme (limiter les mouvements du cou, mais PLS quand même).
+- [x] Méduse : carte rigide ou pince, sans sable.
+- [x] `lib/alertes.ts` : coquille « Mouiller-vous » corrigée.
 
 ### 2.10 Bannière d'accueil et notifications client — MOYEN
 
-- [ ] `components/home/AlertBanner.tsx:44` : supprimer le département par défaut `'75'` ; ne rien afficher tant qu'aucun département n'est choisi.
-- [ ] `components/home/AlertBanner.tsx:76-84` : pause de la rotation au survol et au focus, bouton pause.
-- [ ] `components/home/AlertBanner.tsx:94` : `role="status"` seul, retirer `aria-live` du contenu tournant.
-- [ ] `components/home/AlertBanner.tsx:86-94` : réserver la hauteur pour éviter le décalage de mise en page.
-- [ ] `lib/notifications.ts:235` et `components/alertes/NotificationPrompt.tsx:38,60` : supprimer `checkAndNotifyAlerts` (doublon du push serveur, sans département).
+- [x] `components/home/AlertBanner.tsx` : plus de département par défaut (rien tant qu'aucun département n'est choisi), lien vers le détail de l'alerte courante.
+- [x] Rotation en pause au survol et au focus.
+- [x] `role="status"` seul.
+- [ ] Hauteur réservée : non faite volontairement (une bande vide permanente sur l'accueil serait pire que le décalage ponctuel quand une alerte orange/rouge existe).
+- [x] `checkAndNotifyAlerts` et `showAlertNotification` supprimés de `lib/notifications.ts` ; `NotificationPrompt` ne notifie plus côté client.
 
 ### 2.11 Départements : source unique — MOYEN
 
-- [ ] Créer `lib/departements.ts` : `{ code, nom, centroide, bbox, risqueIncendie }` pour les 101 départements.
-- [ ] Remplacer les tables dupliquées : `components/alertes/DepartmentSelector.tsx:23-49`, `lib/meteo-france.ts:46-74`, `app/api/vigilance/route.ts:37-64`, `app/api/vigicrues/route.ts:28-54`, `lib/geolocation.ts:5-102`, `app/api/air-quality/route.ts:37-48`, listes incendie de `alerts:174`, `fire-risk:27-41`, `meteo-forets:31-48`.
-- [ ] `app/api/air-quality/route.ts:121-127` : renvoyer `null` pour un département inconnu au lieu de retomber sur Paris.
-- [ ] Passer `dept` par `sanitizeDepartmentCode()` et utiliser `Object.hasOwn` dans `air-quality:101-116`, `fire-risk:116-133`, `vigicrues:126`, `meteo-forets:52`.
+- [x] `lib/departements.ts` : 101 départements `{ code, nom, lat, lon, risqueIncendie? }` + `getDepartement`, `getDepartementNom`, `DEPARTEMENTS_RISQUE_INCENDIE`, `findNearestDepartement`, `haversineDistance`.
+- [x] Tables dupliquées remplacées dans le sélecteur, la vigilance, Vigicrues, la qualité de l'air, meteo-forets, fire-risk et l'agrégateur ; `lib/meteo-france.ts` (code mort) supprimé.
+- [x] Qualité de l'air : département inconnu → `alert: null`, plus de repli sur Paris.
+- [x] `sanitizeDepartmentCode()` appliqué dans toutes les routes ; les lookups passent par une `Map` (plus de `departmentCenters[deptCode]` sur un objet brut).
 
 ### 2.12 Saisons — MOYEN
 
-- [ ] `app/conseils-saison/page.tsx` et `app/conseils-saison/[id]/page.tsx` : `export const revalidate = 86400` (saison figée à la date du build), ou calcul côté client dans un effet comme `DailyTip.tsx:52-59`.
-- [ ] `components/home/SeasonalTips.tsx` : même traitement.
+- [x] `export const revalidate = 86400` sur `app/conseils-saison/page.tsx`, `app/conseils-saison/[id]/page.tsx` et `app/page.tsx`.
+- [x] `components/home/SeasonalTips.tsx` : composant serveur (plus de `'use client'`, plus de divergence d'hydratation, quatre saisons retirées du bundle client).
 
 ---
 

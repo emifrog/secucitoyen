@@ -82,8 +82,8 @@ export function showNotification(
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.ready.then((registration) => {
         registration.showNotification(title, {
-          icon: '/icons/icon-192x192.svg',
-          badge: '/icons/icon-72x72.svg',
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-192x192.png',
           tag: 'secucitoyen',
           renotify: true,
           ...options,
@@ -92,7 +92,7 @@ export function showNotification(
     } else {
       // Fallback: notification standard
       new Notification(title, {
-        icon: '/icons/icon-192x192.svg',
+        icon: '/icons/icon-192x192.png',
         ...options,
       });
     }
@@ -198,61 +198,7 @@ async function sendSubscriptionToServer(
   });
 }
 
-// Notifications pour les alertes
-export function showAlertNotification(
-  level: 'jaune' | 'orange' | 'rouge',
-  title: string,
-  department: string
-): void {
-  const levelEmoji: Record<string, string> = {
-    jaune: '🟡',
-    orange: '🟠',
-    rouge: '🔴',
-  };
-
-  const levelText: Record<string, string> = {
-    jaune: 'Vigilance jaune',
-    orange: 'Vigilance orange',
-    rouge: 'ALERTE ROUGE',
-  };
-
-  showNotification(`${levelEmoji[level]} ${levelText[level]}`, {
-    body: `${title}\n${department}`,
-    tag: `alert-${level}-${department}`,
-    requireInteraction: level === 'rouge',
-    data: {
-      url: '/alertes',
-    },
-  });
-}
-
-// Vérifier les nouvelles alertes et notifier
-export async function checkAndNotifyAlerts(): Promise<void> {
-  const settings = getNotificationSettings();
-  if (!settings.enabled || Notification.permission !== 'granted') return;
-
-  try {
-    const response = await fetch('/api/vigilance');
-    const data = await response.json();
-
-    // Récupérer les alertes déjà notifiées
-    const notifiedKey = 'secucitoyen_notified_alerts';
-    const notified = JSON.parse(localStorage.getItem(notifiedKey) || '[]');
-
-    const severeAlerts = (data.alerts || []).filter(
-      (a: { level: string; id: string }) =>
-        (a.level === 'orange' || a.level === 'rouge') && !notified.includes(a.id)
-    );
-
-    // Notifier les nouvelles alertes sévères
-    for (const alert of severeAlerts) {
-      showAlertNotification(alert.level, alert.title, alert.department);
-      notified.push(alert.id);
-    }
-
-    // Sauvegarder les alertes notifiées (garder les 50 dernières)
-    localStorage.setItem(notifiedKey, JSON.stringify(notified.slice(-50)));
-  } catch (error) {
-    console.error('Erreur vérification alertes:', error);
-  }
-}
+// NB : l'ancienne vérification côté client (`checkAndNotifyAlerts`, qui
+// interrogeait /api/vigilance sans département et notifiait toutes les
+// vigilances de France, en doublon du push serveur) a été supprimée : seul le
+// cron serveur envoie des notifications d'alerte, ciblées par département.

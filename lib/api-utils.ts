@@ -10,8 +10,11 @@ interface FetchWithRetryOptions extends RequestInit {
 /**
  * Fetch avec retry automatique et backoff exponentiel.
  * - 3 tentatives par défaut (1s, 2s, 4s)
- * - Timeout configurable (10s par défaut)
+ * - Timeout configurable (10s par défaut) ; un timeout est retenté comme
+ *   n'importe quelle erreur réseau
  * - Ne retry pas les erreurs 4xx (client errors)
+ * - Après la dernière tentative, une réponse 5xx est RETOURNÉE (pas levée) :
+ *   c'est au circuit breaker de la compter comme un échec.
  */
 export async function fetchWithRetry(
   url: string,
@@ -22,44 +25,43 @@ export async function fetchWithRetry(
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    let response: Response;
 
-      const response = await fetch(url, {
+    try {
+      response = await fetch(url, {
         ...fetchOptions,
         signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
-
-      // Ne pas retry les erreurs client (4xx)
-      if (response.status >= 400 && response.status < 500) {
-        return response;
-      }
-
-      // Retry les erreurs serveur (5xx) et autres
-      if (!response.ok && attempt < retries - 1) {
-        lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
-        const delay = baseDelay * Math.pow(2, attempt);
-        await sleep(delay);
-        continue;
-      }
-
-      return response;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-
-      // Ne pas retry si abort volontaire (timeout)
       if (lastError.name === 'AbortError') {
         lastError = new Error(`Timeout après ${timeout}ms pour ${url}`);
       }
-
       if (attempt < retries - 1) {
-        const delay = baseDelay * Math.pow(2, attempt);
-        await sleep(delay);
+        await sleep(baseDelay * Math.pow(2, attempt));
       }
+      continue;
+    } finally {
+      // Toujours annuler le timer, y compris quand fetch rejette (sinon un
+      // timer de 10 s reste pendant à chaque échec).
+      clearTimeout(timeoutId);
     }
+
+    // Ne pas retry les erreurs client (4xx)
+    if (response.status >= 400 && response.status < 500) {
+      return response;
+    }
+
+    // Retry les erreurs serveur (5xx) et autres
+    if (!response.ok && attempt < retries - 1) {
+      lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+      await sleep(baseDelay * Math.pow(2, attempt));
+      continue;
+    }
+
+    return response;
   }
 
   throw lastError || new Error(`Échec après ${retries} tentatives pour ${url}`);
@@ -81,9 +83,20 @@ const circuits: Map<string, CircuitState> = new Map();
 const CIRCUIT_THRESHOLD = 5;        // Nombre d'échecs avant ouverture
 const CIRCUIT_RESET_TIME = 5 * 60 * 1000; // 5 minutes avant de retenter
 
+function recordFailure(source: string, circuit: CircuitState): void {
+  circuit.failures++;
+  circuit.lastFailure = Date.now();
+  if (circuit.failures >= CIRCUIT_THRESHOLD && !circuit.isOpen) {
+    circuit.isOpen = true;
+    console.warn(`[CircuitBreaker] Source "${source}" désactivée après ${CIRCUIT_THRESHOLD} échecs. Réactivation dans 5 min.`);
+  }
+  circuits.set(source, circuit);
+}
+
 /**
  * Fetch avec retry + circuit breaker.
- * Si une source échoue trop souvent, elle est désactivée temporairement.
+ * Si une source échoue trop souvent (exception réseau OU réponse non-2xx
+ * persistante), elle est désactivée temporairement.
  */
 export async function fetchWithCircuitBreaker(
   source: string,
@@ -102,30 +115,26 @@ export async function fetchWithCircuitBreaker(
     circuit.isOpen = false;
   }
 
+  let response: Response;
   try {
-    const response = await fetchWithRetry(url, options);
-
-    if (response.ok) {
-      // Succès : réinitialiser le compteur
-      circuit.failures = 0;
-      circuit.isOpen = false;
-      circuits.set(source, circuit);
-    }
-
-    return response;
+    response = await fetchWithRetry(url, options);
   } catch (error) {
-    // Échec : incrémenter le compteur
-    circuit.failures++;
-    circuit.lastFailure = Date.now();
-
-    if (circuit.failures >= CIRCUIT_THRESHOLD) {
-      circuit.isOpen = true;
-      console.warn(`[CircuitBreaker] Source "${source}" désactivée après ${CIRCUIT_THRESHOLD} échecs. Réactivation dans 5 min.`);
-    }
-
-    circuits.set(source, circuit);
+    recordFailure(source, circuit);
     throw error;
   }
+
+  if (response.ok) {
+    // Succès : réinitialiser le compteur
+    circuit.failures = 0;
+    circuit.isOpen = false;
+    circuits.set(source, circuit);
+  } else if (response.status >= 500) {
+    // 5xx persistant après retries : c'est un échec de la source
+    // (auparavant ignoré → une source en 503 continu n'ouvrait jamais le circuit).
+    recordFailure(source, circuit);
+  }
+
+  return response;
 }
 
 export class CircuitOpenError extends Error {

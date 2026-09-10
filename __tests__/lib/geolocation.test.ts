@@ -1,45 +1,71 @@
-import { findDepartmentFromCoords } from '@/lib/geolocation';
+import { findDepartmentFromCoords, resolveDepartmentFromCoords } from '@/lib/geolocation';
 
-describe('findDepartmentFromCoords', () => {
-  it('trouve Paris pour des coordonnées au centre de Paris', () => {
-    const result = findDepartmentFromCoords(48.8566, 2.3522);
-    expect(result).not.toBeNull();
-    expect(result!.code).toBe('75');
-    expect(result!.name).toBe('Paris');
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
+beforeEach(() => {
+  mockFetch.mockReset();
+});
+
+describe('findDepartmentFromCoords (estimation locale)', () => {
+  it('trouve Paris pour le centre de Paris', () => {
+    expect(findDepartmentFromCoords(48.8566, 2.3522)).toEqual({ code: '75', name: 'Paris' });
   });
 
-  it('trouve Bouches-du-Rhône pour Marseille', () => {
-    const result = findDepartmentFromCoords(43.2965, 5.3698);
-    expect(result).not.toBeNull();
-    expect(result!.code).toBe('13');
-    expect(result!.name).toBe('Bouches-du-Rhône');
+  it('trouve le Rhône pour Lyon (et non l\'Isère)', () => {
+    expect(findDepartmentFromCoords(45.764, 4.8357).code).toBe('69');
   });
 
-  it('trouve un département du sud-est pour Lyon', () => {
-    const result = findDepartmentFromCoords(45.7640, 4.8357);
-    expect(result).not.toBeNull();
-    // Lyon est à la frontière Rhône/Isère, les deux sont acceptables
-    expect(['69', '38', '42']).toContain(result!.code);
+  it("trouve la Guadeloupe pour Pointe-à-Pitre (et non un département métropolitain)", () => {
+    expect(findDepartmentFromCoords(16.2411, -61.5331).code).toBe('971');
   });
 
-  it('trouve la Corse-du-Sud pour Ajaccio', () => {
-    const result = findDepartmentFromCoords(41.9267, 8.7369);
-    expect(result).not.toBeNull();
-    expect(result!.code).toBe('2A');
-    expect(result!.name).toBe('Corse-du-Sud');
+  it('trouve La Réunion pour Saint-Denis', () => {
+    expect(findDepartmentFromCoords(-20.8823, 55.4504).code).toBe('974');
+  });
+});
+
+describe('resolveDepartmentFromCoords (géocodage inverse + repli)', () => {
+  it('utilise le département renvoyé par /api/geocode (exact, non estimé)', async () => {
+    // Neuilly-sur-Seine : le plus proche centroïde est ambigu, l'API tranche.
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ departmentCode: '92', departmentName: 'Hauts-de-Seine' }),
+    });
+
+    const result = await resolveDepartmentFromCoords(48.8846, 2.2686);
+    expect(result).toEqual({ code: '92', name: 'Hauts-de-Seine', estimated: false });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(String(mockFetch.mock.calls[0][0])).toMatch(/^\/api\/geocode\?lat=48\.8846&lon=2\.2686$/);
   });
 
-  it('retourne le département le plus proche pour des coordonnées hors limites', () => {
-    // Coordonnées en mer au large de Nice
-    const result = findDepartmentFromCoords(43.5, 7.5);
-    expect(result).not.toBeNull();
-    // Devrait retourner un département du sud-est
+  it('retombe sur l\'estimation locale si l\'API est indisponible', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('offline'));
+
+    const result = await resolveDepartmentFromCoords(43.2965, 5.3698);
+    expect(result.code).toBe('13');
+    expect(result.estimated).toBe(true);
   });
 
-  it('retourne un résultat même pour des coordonnées éloignées de la France', () => {
-    // Londres
-    const result = findDepartmentFromCoords(51.5, -0.12);
-    // Devrait retourner le département le plus proche (nord de la France)
-    expect(result).not.toBeNull();
+  it('retombe sur l\'estimation locale si l\'API répond sans département', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ departmentCode: null }) });
+
+    const result = await resolveDepartmentFromCoords(45.764, 4.8357);
+    expect(result).toEqual({ code: '69', name: 'Rhône', estimated: true });
+  });
+
+  it('retombe sur l\'estimation locale si l\'API répond 503', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
+
+    const result = await resolveDepartmentFromCoords(48.5734, 7.7521);
+    expect(result.code).toBe('67');
+    expect(result.estimated).toBe(true);
+  });
+
+  it('ignore un code invalide renvoyé par l\'API', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ departmentCode: 'constructor' }) });
+
+    const result = await resolveDepartmentFromCoords(48.8566, 2.3522);
+    expect(result).toEqual({ code: '75', name: 'Paris', estimated: true });
   });
 });

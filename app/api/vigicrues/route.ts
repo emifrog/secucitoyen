@@ -1,179 +1,35 @@
 import { NextResponse } from 'next/server';
-import { fetchWithCircuitBreaker } from '@/lib/api-utils';
-import type { VigicruesGeoJSON, VigicruesFeature } from '@/lib/types/api-responses';
-import { parseNiveau } from '@/lib/vigicrues-parse';
+import { rateLimited } from '@/lib/rate-limit';
+import { sanitizeDepartmentCode } from '@/lib/validation';
+import { fetchVigicrues } from '@/lib/sources/vigicrues';
 
-// API pour récupérer les vigilances crues depuis Vigicrues
-// Source : https://www.vigicrues.gouv.fr/services/v1.1
+// Vigilance crues (Vigicrues). Logique dans lib/sources/vigicrues.ts
+// (partagée avec l'agrégateur /api/alerts).
 
-export interface VigicrueAlert {
-  id: string;
-  troncon: string;
-  niveau: 'vert' | 'jaune' | 'orange' | 'rouge';
-  cours_eau: string;
-  departement: string;
-  departementCode: string;
-  dateDebut?: string;
-  dateFin?: string;
-}
+export type { VigicrueAlert } from '@/lib/sources/vigicrues';
 
 export const dynamic = 'force-dynamic';
 
-// Cache mémoire simple pour éviter les requêtes trop fréquentes
-// Le fichier GeoJSON fait ~3Mo, trop gros pour le cache Next.js
-let cachedData: { alerts: VigicrueAlert[]; timestamp: number } | null = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes en millisecondes
-
-// Mapping des codes département vers noms
-const departementNames: Record<string, string> = {
-  '01': 'Ain', '02': 'Aisne', '03': 'Allier', '04': 'Alpes-de-Haute-Provence',
-  '05': 'Hautes-Alpes', '06': 'Alpes-Maritimes', '07': 'Ardèche', '08': 'Ardennes',
-  '09': 'Ariège', '10': 'Aube', '11': 'Aude', '12': 'Aveyron',
-  '13': 'Bouches-du-Rhône', '14': 'Calvados', '15': 'Cantal', '16': 'Charente',
-  '17': 'Charente-Maritime', '18': 'Cher', '19': 'Corrèze', '21': "Côte-d'Or",
-  '22': "Côtes-d'Armor", '23': 'Creuse', '24': 'Dordogne', '25': 'Doubs',
-  '26': 'Drôme', '27': 'Eure', '28': 'Eure-et-Loir', '29': 'Finistère',
-  '30': 'Gard', '31': 'Haute-Garonne', '32': 'Gers', '33': 'Gironde',
-  '34': 'Hérault', '35': 'Ille-et-Vilaine', '36': 'Indre', '37': 'Indre-et-Loire',
-  '38': 'Isère', '39': 'Jura', '40': 'Landes', '41': 'Loir-et-Cher',
-  '42': 'Loire', '43': 'Haute-Loire', '44': 'Loire-Atlantique', '45': 'Loiret',
-  '46': 'Lot', '47': 'Lot-et-Garonne', '48': 'Lozère', '49': 'Maine-et-Loire',
-  '50': 'Manche', '51': 'Marne', '52': 'Haute-Marne', '53': 'Mayenne',
-  '54': 'Meurthe-et-Moselle', '55': 'Meuse', '56': 'Morbihan', '57': 'Moselle',
-  '58': 'Nièvre', '59': 'Nord', '60': 'Oise', '61': 'Orne',
-  '62': 'Pas-de-Calais', '63': 'Puy-de-Dôme', '64': 'Pyrénées-Atlantiques',
-  '65': 'Hautes-Pyrénées', '66': 'Pyrénées-Orientales', '67': 'Bas-Rhin',
-  '68': 'Haut-Rhin', '69': 'Rhône', '70': 'Haute-Saône', '71': 'Saône-et-Loire',
-  '72': 'Sarthe', '73': 'Savoie', '74': 'Haute-Savoie', '75': 'Paris',
-  '76': 'Seine-Maritime', '77': 'Seine-et-Marne', '78': 'Yvelines',
-  '79': 'Deux-Sèvres', '80': 'Somme', '81': 'Tarn', '82': 'Tarn-et-Garonne',
-  '83': 'Var', '84': 'Vaucluse', '85': 'Vendée', '86': 'Vienne',
-  '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
-  '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis',
-  '94': 'Val-de-Marne', '95': "Val-d'Oise",
-};
-
-// Fonction pour récupérer et parser les données Vigicrues
-async function fetchVigicruesData(): Promise<VigicrueAlert[]> {
-  // Vérifier le cache mémoire
-  if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
-    return cachedData.alerts;
-  }
-
-  // Récupérer les vigilances crues en GeoJSON (sans cache Next.js car > 2Mo)
-  const response = await fetchWithCircuitBreaker(
-    'vigicrues',
-    'https://www.vigicrues.gouv.fr/services/1/InfoVigiCru.geojson',
-    {
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-store',
-      timeout: 15000, // Timeout plus long car fichier ~3Mo
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Vigicrues API error: ${response.status}`);
-  }
-
-  const data: VigicruesGeoJSON = await response.json();
-  const features = data.features || [];
-
-  // Transformer les données - ne garder que les alertes actives
-  const alerts = features
-    .map((feature: VigicruesFeature) => {
-      const props = feature.properties;
-      const niveau = parseNiveau(props.NivSituVigiCruEnt);
-
-      // Ne garder que les alertes jaune, orange ou rouge
-      if (niveau === 'vert') return null;
-
-      // Extraire le département du code tronçon si possible
-      const codeTroncon = props.CdEntVigiCru || '';
-      const tronconName = props.NomEntVigiCru || 'Tronçon inconnu';
-
-      // Essayer de déterminer le département
-      let deptCode = '';
-      let deptName = '';
-
-      // Le code tronçon peut contenir des infos sur le département
-      if (codeTroncon.length >= 2) {
-        const potentialDept = codeTroncon.substring(0, 2);
-        if (departementNames[potentialDept]) {
-          deptCode = potentialDept;
-          deptName = departementNames[potentialDept];
-        }
-      }
-
-      return {
-        id: `vigicrues-${codeTroncon}`,
-        troncon: tronconName,
-        niveau,
-        cours_eau: props.NomCoursEau || props.NomEntVigiCru || 'Cours d\'eau',
-        departement: deptName,
-        departementCode: deptCode,
-      };
-    })
-    .filter(Boolean) as VigicrueAlert[];
-
-  // Mettre en cache mémoire (léger, uniquement les alertes actives)
-  cachedData = { alerts, timestamp: Date.now() };
-
-  return alerts;
-}
-
 export async function GET(request: Request) {
+  const limited = rateLimited(request, { key: 'vigicrues', limit: 60, windowMs: 60 * 1000 });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
-  const dept = searchParams.get('dept');
+  const dept = sanitizeDepartmentCode(searchParams.get('dept'));
 
-  try {
-    const alerts = await fetchVigicruesData();
+  const result = await fetchVigicrues(dept);
 
-    // Filtrer par département si demandé
-    let filteredAlerts = alerts;
-    if (dept) {
-      filteredAlerts = alerts.filter(
-        (a) => a.departementCode === dept || a.departement.toLowerCase().includes(dept.toLowerCase())
-      );
-    }
-
-    // Trier par niveau de gravité
-    const niveauOrder = { rouge: 0, orange: 1, jaune: 2, vert: 3 };
-    filteredAlerts.sort((a, b) => niveauOrder[a.niveau] - niveauOrder[b.niveau]);
-
-    return NextResponse.json({
-      alerts: filteredAlerts,
-      count: filteredAlerts.length,
-      totalNational: alerts.length,
+  return NextResponse.json(
+    {
+      alerts: result.items,
+      count: result.items.length,
+      totalNational: result.totalNational,
       source: 'Vigicrues - Ministère de la Transition écologique',
-      updatedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Erreur API Vigicrues:', error);
-
-    // En cas d'erreur, retourner le cache s'il existe (même expiré)
-    if (cachedData) {
-      const filteredAlerts = dept
-        ? cachedData.alerts.filter(
-            (a) => a.departementCode === dept || a.departement.toLowerCase().includes(dept.toLowerCase())
-          )
-        : cachedData.alerts;
-
-      return NextResponse.json({
-        alerts: filteredAlerts,
-        count: filteredAlerts.length,
-        totalNational: cachedData.alerts.length,
-        source: 'Vigicrues (cache)',
-        cached: true,
-        updatedAt: new Date(cachedData.timestamp).toISOString(),
-      });
-    }
-
-    return NextResponse.json({
-      alerts: [],
-      count: 0,
-      error: 'Service Vigicrues temporairement indisponible',
-      source: 'Vigicrues',
-      updatedAt: new Date().toISOString(),
-    });
-  }
+      cached: result.cached,
+      degraded: result.degraded,
+      error: result.error,
+      updatedAt: result.updatedAt,
+    },
+    { headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=600' } }
+  );
 }

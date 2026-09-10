@@ -25,6 +25,13 @@ interface SendRequest {
   level?: 'jaune' | 'orange' | 'rouge';
 }
 
+// Les services push rejettent les payloads > 4 Ko (413) ; on borne titre et
+// corps bien en dessous et on n'accepte qu'un niveau connu.
+const VALID_LEVELS = new Set(['jaune', 'orange', 'rouge']);
+const MAX_TITLE = 120;
+const MAX_BODY = 500;
+const TAG_RE = /^[\w.-]{1,64}$/;
+
 export async function POST(request: Request) {
   try {
     // Auth par clé API : comparaison timing-safe, placeholder rejeté.
@@ -40,11 +47,21 @@ export async function POST(request: Request) {
     }
 
     const body: SendRequest = await request.json();
-    const { title, body: notifBody, icon, url, tag, departmentCode, level } = body;
+    const { icon, url, departmentCode, level } = body;
+    const title = typeof body.title === 'string' ? body.title.trim().slice(0, MAX_TITLE) : '';
+    const notifBody = typeof body.body === 'string' ? body.body.trim().slice(0, MAX_BODY) : '';
+    const tag = typeof body.tag === 'string' && TAG_RE.test(body.tag) ? body.tag : `alert-${Date.now()}`;
 
     if (!title || !notifBody) {
       return NextResponse.json(
         { error: 'title et body requis' },
+        { status: 400 }
+      );
+    }
+
+    if (level !== undefined && !VALID_LEVELS.has(level)) {
+      return NextResponse.json(
+        { error: 'level doit valoir jaune, orange ou rouge' },
         { status: 400 }
       );
     }
@@ -79,13 +96,14 @@ export async function POST(request: Request) {
       rouge: '🔴',
     };
 
+    // Icônes en PNG : Chrome Android ignore les SVG pour icon/badge.
     const payload = JSON.stringify({
       title: level ? `${levelEmoji[level]} ${title}` : title,
       body: notifBody,
-      icon: toSafeRelativePath(icon, '/icons/icon-192x192.svg'),
-      badge: '/icons/icon-72x72.svg',
+      icon: toSafeRelativePath(icon, '/icons/icon-192x192.png'),
+      badge: '/icons/icon-192x192.png',
       url: toSafeRelativePath(url, '/alertes'),
-      tag: tag || `alert-${Date.now()}`,
+      tag,
       requireInteraction: level === 'rouge',
     });
 

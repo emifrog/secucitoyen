@@ -1,6 +1,11 @@
 /**
- * Calcul de l'Indice Feu Météo (IFM) simplifié et détermination du niveau
- * de risque incendie. Extrait de la route /api/meteo-forets pour être testable.
+ * Indice feu météo SIMPLIFIÉ et niveau de risque incendie associé.
+ *
+ * Ce n'est ni l'IFM/FWI canadien (qui intègre l'humidité des combustibles sur
+ * plusieurs jours) ni le produit officiel « Météo des forêts » de Météo-France.
+ * Il s'agit d'une estimation à partir de la météo instantanée : toujours
+ * l'étiqueter comme non officielle et ne jamais l'utiliser pour déclencher
+ * une notification push.
  */
 
 export type ForetNiveau = 'faible' | 'modere' | 'eleve' | 'tres_eleve' | 'extreme';
@@ -55,8 +60,8 @@ export function getDescription(niveau: ForetNiveau): string {
   switch (niveau) {
     case 'faible': return 'Risque faible - Conditions normales';
     case 'modere': return 'Risque modéré - Prudence recommandée';
-    case 'eleve': return 'Risque élevé - Éviter tout comportement à risque';
-    case 'tres_eleve': return 'Risque très élevé - Interdiction possible de certains massifs';
-    case 'extreme': return 'Risque extrême - Accès aux forêts fortement déconseillé';
+    case 'eleve': return 'Risque élevé (estimation) - Éviter tout comportement à risque';
+    case 'tres_eleve': return 'Risque très élevé (estimation) - Vérifiez les restrictions d\'accès aux massifs auprès de la préfecture';
+    case 'extreme': return 'Risque extrême (estimation) - Accès aux forêts fortement déconseillé, consultez la Météo des forêts officielle';
   }
 }

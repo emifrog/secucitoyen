@@ -47,11 +47,54 @@ beforeEach(() => {
   deleteMock.mockClear();
 });
 
+// Clés ECDH au format réel (base64url) : p256dh = 87 caractères, auth = 22.
+const VALID_P256DH = 'B' + 'A'.repeat(86);
+const VALID_AUTH = 'A'.repeat(22);
+
 describe('POST /api/notifications/subscribe', () => {
   const validSubscription = {
     endpoint: 'https://fcm.googleapis.com/fcm/send/valid-token',
-    keys: { p256dh: 'BPabc', auth: 'auth123' },
+    keys: { p256dh: VALID_P256DH, auth: VALID_AUTH },
   };
+
+  it('rejette des clés ECDH au mauvais format (anti-empoisonnement)', async () => {
+    for (const keys of [
+      { p256dh: 'BPabc', auth: VALID_AUTH },
+      { p256dh: VALID_P256DH, auth: 'auth123' },
+      { p256dh: VALID_P256DH + '!', auth: VALID_AUTH },
+    ]) {
+      const res = await subscribePOST(
+        postRequest('http://localhost/api/notifications/subscribe', {
+          subscription: { endpoint: validSubscription.endpoint, keys },
+        })
+      );
+      expect(res.status).toBe(400);
+    }
+    expect(upsertMock).not.toHaveBeenCalled();
+  });
+
+  it('rejette un corps de requête de plus de 4 Ko (413)', async () => {
+    const res = await subscribePOST(
+      postRequest('http://localhost/api/notifications/subscribe', {
+        subscription: validSubscription,
+        padding: 'x'.repeat(5000),
+      })
+    );
+    expect(res.status).toBe(413);
+    expect(upsertMock).not.toHaveBeenCalled();
+  });
+
+  it("n'enregistre que les deux clés attendues (pas de champs arbitraires)", async () => {
+    await subscribePOST(
+      postRequest('http://localhost/api/notifications/subscribe', {
+        subscription: { ...validSubscription, keys: { ...validSubscription.keys, extra: 'x' } },
+      })
+    );
+    expect(upsertMock.mock.calls[0][0]).toMatchObject({
+      keys: { p256dh: VALID_P256DH, auth: VALID_AUTH },
+    });
+    expect((upsertMock.mock.calls[0][0] as { keys: Record<string, unknown> }).keys).not.toHaveProperty('extra');
+  });
 
   it('rejette un endpoint hors allowlist (garde SSRF)', async () => {
     const res = await subscribePOST(

@@ -29,7 +29,7 @@ export const fichesSecours: FicheSecours[] = [
     whenToAct: [
       'La personne ne répond pas',
       'La personne ne respire pas ou respire anormalement (gasps)',
-      'Aucun pouls perceptible',
+      'Ne cherchez pas le pouls : absence de réponse + respiration anormale = agissez',
     ],
     steps: [
       {
@@ -86,7 +86,7 @@ export const fichesSecours: FicheSecours[] = [
     title: 'Étouffement',
     icon: '😮',
     urgency: 'critical',
-    shortDescription: 'Désobstruction des voies aériennes chez l\'adulte et l\'enfant',
+    shortDescription: 'Désobstruction des voies aériennes chez l\'adulte, l\'enfant et le nourrisson',
     whenToAct: [
       'La personne porte les mains à sa gorge',
       'Elle ne peut plus parler, tousser ou respirer',
@@ -115,6 +115,11 @@ export const fichesSecours: FicheSecours[] = [
         description: 'Continuez à alterner 5 tapes dans le dos et 5 compressions abdominales jusqu\'à expulsion de l\'objet ou perte de conscience.',
       },
       {
+        title: 'Nourrisson (moins d\'un an) : geste différent',
+        description: 'Jamais de compressions abdominales. Allongez le nourrisson à plat ventre sur votre avant-bras, tête plus basse que le corps, et donnez 5 tapes dans le dos entre les omoplates. Sans effet, retournez-le sur le dos et faites 5 compressions thoraciques avec deux doigts au milieu de la poitrine. Alternez jusqu\'à la désobstruction.',
+        warning: 'Ne secouez jamais un nourrisson et ne le tenez jamais par les pieds.',
+      },
+      {
         title: 'Si perte de conscience',
         description: 'Allongez la victime au sol, appelez le 15/112. Commencez la RCP (massage cardiaque). Regardez dans la bouche avant chaque insufflation pour retirer l\'objet visible.',
         warning: 'Ne mettez jamais vos doigts à l\'aveugle dans la bouche.',
@@ -125,6 +130,7 @@ export const fichesSecours: FicheSecours[] = [
       'Ne donnez pas de tapes dans le dos si la personne est debout droite',
       'Ne faites pas boire la personne',
       'Ne mettez pas vos doigts dans la gorge à l\'aveugle',
+      'Ne faites jamais de compressions abdominales à un nourrisson de moins d\'un an',
     ],
     callEmergency: {
       when: 'Si l\'obstruction ne se lève pas après quelques cycles, ou immédiatement si perte de conscience',
@@ -169,8 +175,8 @@ export const fichesSecours: FicheSecours[] = [
         description: 'Composez le 15 ou 112 ou demandez à un témoin de le faire pendant que vous maintenez la compression.',
       },
       {
-        title: 'Allongez et surélevez',
-        description: 'Si la plaie est sur un membre, surélevez-le au-dessus du niveau du cœur tout en maintenant la compression.',
+        title: 'Allongez et couvrez',
+        description: 'Gardez la victime allongée et maintenez la compression sans interruption jusqu\'à l\'arrivée des secours. Surélever le membre n\'est plus recommandé : cela n\'aide pas et détourne de la compression.',
         tip: 'Couvrez la victime pour éviter l\'hypothermie.',
       },
       {
@@ -217,7 +223,7 @@ export const fichesSecours: FicheSecours[] = [
       {
         title: 'Refroidissez immédiatement',
         description: 'Faites couler de l\'eau tiède (15-20°C) sur la brûlure pendant 15 à 20 minutes. L\'eau doit couler doucement, pas sous pression.',
-        tip: 'Commencez dans les 30 minutes suivant la brûlure pour être efficace.',
+        tip: 'Commencez dès que possible : le refroidissement reste utile jusqu\'à 3 heures après la brûlure.',
         warning: 'N\'utilisez pas d\'eau glacée ni de glace, cela aggrave les lésions.',
       },
       {
@@ -299,7 +305,7 @@ export const fichesSecours: FicheSecours[] = [
       'Ne mettez pas en PLS quelqu\'un qui ne respire pas',
       'Ne laissez pas la personne sur le dos si vous devez vous absenter',
       'Ne mettez pas d\'oreiller sous la tête',
-      'Ne déplacez pas si suspicion de traumatisme du rachis (accident violent)',
+      'En cas de traumatisme (chute, accident) : limitez les mouvements de la tête et du cou pendant le retournement, mais mettez quand même en PLS — libérer les voies aériennes prime',
     ],
     callEmergency: {
       when: 'Toujours appeler le 15 pour une personne inconsciente',
@@ -530,7 +536,7 @@ export const fichesSecours: FicheSecours[] = [
       },
       {
         title: 'Piqûre de méduse',
-        description: 'Rincez à l\'eau de mer (pas d\'eau douce !). Retirez les filaments avec du sable ou un carton. Appliquez du chaud (40-45°C) pendant 20 min.',
+        description: 'Rincez à l\'eau de mer (pas d\'eau douce !). Retirez les filaments avec le bord d\'une carte rigide ou une pince, sans frotter et sans sable. Appliquez du chaud (40-45°C) pendant 20 min.',
         tip: 'L\'eau chaude inactive le venin de la plupart des méduses.',
       },
       {

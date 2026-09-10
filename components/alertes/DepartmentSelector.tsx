@@ -4,49 +4,16 @@ import { useState, useEffect } from 'react';
 import {
   isGeolocationSupported,
   getCurrentPosition,
+  resolveDepartmentFromCoords,
   getSavedDepartment,
   saveDepartment,
+  clearSavedDepartment,
 } from '@/lib/geolocation';
+import { DEPARTEMENTS, getDepartementNom } from '@/lib/departements';
 
-const popularDepartments = [
-  { code: '75', name: 'Paris' },
-  { code: '13', name: 'Bouches-du-Rhône' },
-  { code: '69', name: 'Rhône' },
-  { code: '31', name: 'Haute-Garonne' },
-  { code: '33', name: 'Gironde' },
-  { code: '59', name: 'Nord' },
-  { code: '06', name: 'Alpes-Maritimes' },
-  { code: '44', name: 'Loire-Atlantique' },
-  { code: '67', name: 'Bas-Rhin' },
-];
-
-const allDepartments: Record<string, string> = {
-  '01': 'Ain', '02': 'Aisne', '03': 'Allier', '04': 'Alpes-de-Haute-Provence',
-  '05': 'Hautes-Alpes', '06': 'Alpes-Maritimes', '07': 'Ardèche', '08': 'Ardennes',
-  '09': 'Ariège', '10': 'Aube', '11': 'Aude', '12': 'Aveyron',
-  '13': 'Bouches-du-Rhône', '14': 'Calvados', '15': 'Cantal', '16': 'Charente',
-  '17': 'Charente-Maritime', '18': 'Cher', '19': 'Corrèze', '2A': 'Corse-du-Sud',
-  '2B': 'Haute-Corse', '21': 'Côte-d\'Or', '22': 'Côtes-d\'Armor', '23': 'Creuse',
-  '24': 'Dordogne', '25': 'Doubs', '26': 'Drôme', '27': 'Eure',
-  '28': 'Eure-et-Loir', '29': 'Finistère', '30': 'Gard', '31': 'Haute-Garonne',
-  '32': 'Gers', '33': 'Gironde', '34': 'Hérault', '35': 'Ille-et-Vilaine',
-  '36': 'Indre', '37': 'Indre-et-Loire', '38': 'Isère', '39': 'Jura',
-  '40': 'Landes', '41': 'Loir-et-Cher', '42': 'Loire', '43': 'Haute-Loire',
-  '44': 'Loire-Atlantique', '45': 'Loiret', '46': 'Lot', '47': 'Lot-et-Garonne',
-  '48': 'Lozère', '49': 'Maine-et-Loire', '50': 'Manche', '51': 'Marne',
-  '52': 'Haute-Marne', '53': 'Mayenne', '54': 'Meurthe-et-Moselle', '55': 'Meuse',
-  '56': 'Morbihan', '57': 'Moselle', '58': 'Nièvre', '59': 'Nord',
-  '60': 'Oise', '61': 'Orne', '62': 'Pas-de-Calais', '63': 'Puy-de-Dôme',
-  '64': 'Pyrénées-Atlantiques', '65': 'Hautes-Pyrénées', '66': 'Pyrénées-Orientales',
-  '67': 'Bas-Rhin', '68': 'Haut-Rhin', '69': 'Rhône', '70': 'Haute-Saône',
-  '71': 'Saône-et-Loire', '72': 'Sarthe', '73': 'Savoie', '74': 'Haute-Savoie',
-  '75': 'Paris', '76': 'Seine-Maritime', '77': 'Seine-et-Marne', '78': 'Yvelines',
-  '79': 'Deux-Sèvres', '80': 'Somme', '81': 'Tarn', '82': 'Tarn-et-Garonne',
-  '83': 'Var', '84': 'Vaucluse', '85': 'Vendée', '86': 'Vienne',
-  '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
-  '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis',
-  '94': 'Val-de-Marne', '95': 'Val-d\'Oise',
-};
+// Raccourcis vers les départements les plus peuplés ; la liste complète
+// (dont l'outre-mer) est accessible via le sélecteur en dessous.
+const POPULAR_CODES = ['75', '13', '69', '31', '33', '59', '06', '44', '67'];
 
 export default function DepartmentSelector() {
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
@@ -54,12 +21,19 @@ export default function DepartmentSelector() {
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isAutoLocated, setIsAutoLocated] = useState(false);
+  // true : département déduit du point de référence le plus proche (géocodage
+  // indisponible) — à présenter comme une estimation à vérifier.
+  const [isEstimated, setIsEstimated] = useState(false);
+  // Évalué après montage (false côté serveur, vrai côté client → erreur
+  // d'hydratation si lu pendant le rendu).
+  const [geoSupported, setGeoSupported] = useState(false);
 
   useEffect(() => {
+    setGeoSupported(isGeolocationSupported());
     const saved = getSavedDepartment();
     if (saved) {
       setSelectedDept(saved);
-      setDeptName(allDepartments[saved] || saved);
+      setDeptName(getDepartementNom(saved) || saved);
     }
   }, []);
 
@@ -68,16 +42,13 @@ export default function DepartmentSelector() {
     setLocationError(null);
 
     try {
-      const location = await getCurrentPosition();
-
-      if (location.departmentCode && location.departmentName) {
-        setSelectedDept(location.departmentCode);
-        setDeptName(location.departmentName);
-        setIsAutoLocated(true);
-        saveDepartment(location.departmentCode);
-      } else {
-        setLocationError('Impossible de déterminer votre département');
-      }
+      const position = await getCurrentPosition();
+      const resolved = await resolveDepartmentFromCoords(position.latitude, position.longitude);
+      setSelectedDept(resolved.code);
+      setDeptName(resolved.name);
+      setIsAutoLocated(true);
+      setIsEstimated(resolved.estimated);
+      saveDepartment(resolved.code);
     } catch (error) {
       setLocationError(error instanceof Error ? error.message : 'Erreur de géolocalisation');
     } finally {
@@ -85,10 +56,11 @@ export default function DepartmentSelector() {
     }
   };
 
-  const selectDepartment = (code: string, name: string) => {
+  const selectDepartment = (code: string) => {
     setSelectedDept(code);
-    setDeptName(name);
+    setDeptName(getDepartementNom(code) || code);
     setIsAutoLocated(false);
+    setIsEstimated(false);
     saveDepartment(code);
   };
 
@@ -96,13 +68,14 @@ export default function DepartmentSelector() {
     setSelectedDept(null);
     setDeptName(null);
     setIsAutoLocated(false);
-    localStorage.removeItem('secucitoyen_department');
+    setIsEstimated(false);
+    clearSavedDepartment();
   };
 
   return (
     <section className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-xl">
+        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-xl" aria-hidden="true">
           📍
         </div>
         <div className="flex-1">
@@ -110,8 +83,13 @@ export default function DepartmentSelector() {
           {selectedDept ? (
             <p className="text-sm text-blue-700 dark:text-blue-400">
               Alertes pour : <strong>{deptName}</strong>
-              {isAutoLocated && (
+              {isAutoLocated && !isEstimated && (
                 <span className="ml-2 text-xs text-green-600 dark:text-green-400">(GPS)</span>
+              )}
+              {isAutoLocated && isEstimated && (
+                <span className="ml-2 text-xs text-amber-700 dark:text-amber-400">
+                  (estimé, vérifiez)
+                </span>
               )}
             </p>
           ) : (
@@ -128,10 +106,17 @@ export default function DepartmentSelector() {
         </div>
       )}
 
+      {isAutoLocated && isEstimated && (
+        <p role="status" className="mb-3 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs rounded-lg">
+          Le service de géocodage est indisponible : ce département est estimé d&apos;après
+          votre position. Vérifiez-le et corrigez-le si nécessaire.
+        </p>
+      )}
+
       {!selectedDept ? (
         <div className="space-y-3">
           {/* Bouton géolocalisation */}
-          {isGeolocationSupported() && (
+          {geoSupported && (
             <button
               onClick={handleGeolocate}
               disabled={isLocating}
@@ -139,7 +124,7 @@ export default function DepartmentSelector() {
             >
               {isLocating ? (
                 <>
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -147,7 +132,7 @@ export default function DepartmentSelector() {
                 </>
               ) : (
                 <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -166,15 +151,39 @@ export default function DepartmentSelector() {
 
           {/* Départements populaires */}
           <div className="grid grid-cols-3 gap-2">
-            {popularDepartments.map((dept) => (
+            {POPULAR_CODES.map((code) => (
               <button
-                key={dept.code}
-                onClick={() => selectDepartment(dept.code, dept.name)}
+                key={code}
+                onClick={() => selectDepartment(code)}
                 className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
               >
-                {dept.name}
+                {getDepartementNom(code)}
               </button>
             ))}
+          </div>
+
+          {/* Liste complète (métropole, Corse, outre-mer) */}
+          <div>
+            <label htmlFor="department-select" className="sr-only">
+              Tous les départements
+            </label>
+            <select
+              id="department-select"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) selectDepartment(e.target.value);
+              }}
+              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-200"
+            >
+              <option value="" disabled>
+                Tous les départements (dont outre-mer)…
+              </option>
+              {DEPARTEMENTS.map((d) => (
+                <option key={d.code} value={d.code}>
+                  {d.code} — {d.nom}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       ) : (
@@ -182,7 +191,7 @@ export default function DepartmentSelector() {
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm font-medium flex items-center gap-1">
               {isAutoLocated && (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 </svg>
               )}
@@ -190,14 +199,15 @@ export default function DepartmentSelector() {
             </span>
           </div>
           <div className="flex gap-2">
-            {isGeolocationSupported() && !isAutoLocated && (
+            {geoSupported && !isAutoLocated && (
               <button
                 onClick={handleGeolocate}
                 disabled={isLocating}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                aria-label="Utiliser ma position"
                 title="Utiliser ma position"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 </svg>
               </button>

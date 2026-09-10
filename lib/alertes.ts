@@ -184,7 +184,7 @@ export const alertTypes: AlertTypeInfo[] = [
       ],
       orange: [
         'Passez plusieurs heures dans un lieu frais',
-        'Mouiller-vous le corps régulièrement',
+        'Mouillez-vous le corps régulièrement',
         'Évitez de sortir entre 11h et 21h',
         'Prenez des nouvelles de vos proches',
       ],
@@ -327,34 +327,3 @@ export function getAdviceForAlert(type: AlertType, level: AlertLevel): string[] 
   const typeInfo = getAlertTypeInfo(type);
   return typeInfo?.adviceByLevel[level] || [];
 }
-
-// Alertes simulées (sera remplacé par l'API)
-export const mockAlerts: Alert[] = [
-  {
-    id: 'alert-1',
-    type: 'orages',
-    level: 'orange',
-    title: 'Vigilance orange orages',
-    description: 'Des orages violents sont attendus. Ils seront accompagnés de fortes rafales de vent et de grêle.',
-    department: 'Haute-Garonne',
-    departmentCode: '31',
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date().toISOString(),
-    source: 'Météo-France',
-    advice: [],
-  },
-  {
-    id: 'alert-2',
-    type: 'canicule',
-    level: 'jaune',
-    title: 'Vigilance jaune canicule',
-    description: 'Températures élevées prévues. Pic attendu en milieu d\'après-midi.',
-    department: 'Paris',
-    departmentCode: '75',
-    startDate: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    source: 'Météo-France',
-    advice: [],
-  },
-];

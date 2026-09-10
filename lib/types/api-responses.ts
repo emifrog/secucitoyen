@@ -40,7 +40,8 @@ export interface OpenMeteoCurrentResponse {
 }
 
 // ========================
-// OpenDataSoft (Défibrillateurs)
+// OpenDataSoft (Défibrillateurs) — jeu « osm-france-defibrillator »
+// (schéma Géo'DAE national, géolocalisation OSM dans meta_geo_point)
 // ========================
 export interface OpenDataSoftDAEResponse {
   results: OpenDataSoftDAERecord[];
@@ -48,21 +49,25 @@ export interface OpenDataSoftDAEResponse {
 }
 
 export interface OpenDataSoftDAERecord {
-  c_gid?: string | number;
-  id?: string | number;
-  c_nom?: string;
-  nom_site?: string;
-  c_adr_voie?: string;
+  gid?: string;
+  name?: string;
+  adr_num?: string;
   adr_voie?: string;
-  c_com_nom?: string;
-  commune?: string;
-  c_com_cp?: string;
-  code_postal?: string;
+  com_cp?: string;
+  com_nom?: string;
+  acc?: string;
+  acc_lib?: string;
+  acc_complt?: string;
+  disp_j?: string;
+  disp_h?: string;
+  etat_fonct?: string;
+  lat_coor1?: number;
+  long_coor1?: number;
+  meta_geo_point?: { lat: number; lon: number };
   geo_point_2d?: { lat: number; lon: number };
-  c_acc?: string;
-  accessibilite?: string;
-  c_disp_j?: string;
-  disponibilite?: string;
+  meta_osm_id?: string;
+  meta_name_com?: string;
+  meta_code_dep?: string;
   [key: string]: unknown;
 }
 

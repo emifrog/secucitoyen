@@ -1,8 +1,10 @@
-'use client';
-
 import Link from 'next/link';
 import { getSaisonActuelle } from '@/lib/conseils-saisonniers';
 
+// Composant serveur (aucun hook) : la saison est calculée au rendu de la page
+// d'accueil, revalidée quotidiennement (app/page.tsx). En composant client,
+// le calcul au chargement divergeait du HTML prérendu au changement de saison
+// (erreur d'hydratation) et embarquait les quatre saisons dans le bundle.
 export default function SeasonalTips() {
   const saison = getSaisonActuelle();
   const conseilsPreview = saison.conseils.slice(0, 3);

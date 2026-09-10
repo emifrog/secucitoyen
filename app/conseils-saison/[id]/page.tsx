@@ -7,6 +7,9 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+// La saison de repli est calculée côté serveur : revalidation quotidienne.
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   const allConseils: { id: string }[] = [];
   for (const saison of saisons) {

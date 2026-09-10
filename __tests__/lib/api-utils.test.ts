@@ -94,6 +94,71 @@ describe('fetchWithCircuitBreaker', () => {
       })
     ).rejects.toThrow(CircuitOpenError);
   });
+
+  it('ouvre le circuit sur des réponses 5xx persistantes (pas seulement les exceptions)', async () => {
+    for (let i = 0; i < 5; i++) {
+      mockFetch.mockResolvedValueOnce(mockResponse('down', { status: 503 }));
+      const res = await fetchWithCircuitBreaker('cb-5xx-source', 'https://example.com/api', {
+        retries: 1,
+        baseDelay: 1,
+      });
+      expect(res.status).toBe(503);
+    }
+
+    expect(getCircuitState('cb-5xx-source')).toEqual({ isOpen: true, failures: 5 });
+    await expect(
+      fetchWithCircuitBreaker('cb-5xx-source', 'https://example.com/api', { retries: 1, baseDelay: 1 })
+    ).rejects.toThrow(CircuitOpenError);
+  });
+
+  it('ne compte pas une 4xx comme un échec de la source', async () => {
+    for (let i = 0; i < 6; i++) {
+      mockFetch.mockResolvedValueOnce(mockResponse('nope', { status: 404 }));
+      await fetchWithCircuitBreaker('cb-4xx-source', 'https://example.com/api', { retries: 1, baseDelay: 1 });
+    }
+    expect(getCircuitState('cb-4xx-source').isOpen).toBe(false);
+  });
+
+  it('passe en half-open après 5 min et se referme sur un succès', async () => {
+    jest.useFakeTimers({ now: new Date('2026-09-10T10:00:00Z') });
+    try {
+      for (let i = 0; i < 5; i++) {
+        mockFetch.mockRejectedValueOnce(new Error('fail'));
+        await fetchWithCircuitBreaker('cb-halfopen', 'https://example.com/api', { retries: 1, baseDelay: 1 }).catch(() => {});
+      }
+      expect(getCircuitState('cb-halfopen').isOpen).toBe(true);
+
+      // Avant l'expiration : toujours ouvert, fetch n'est pas appelé.
+      mockFetch.mockClear();
+      await expect(
+        fetchWithCircuitBreaker('cb-halfopen', 'https://example.com/api', { retries: 1, baseDelay: 1 })
+      ).rejects.toThrow(CircuitOpenError);
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Après 5 min : une tentative passe (half-open) et un succès referme le circuit.
+      jest.setSystemTime(new Date('2026-09-10T10:05:01Z'));
+      expect(getCircuitState('cb-halfopen').isOpen).toBe(false);
+      mockFetch.mockResolvedValueOnce(mockResponse('ok', { status: 200 }));
+      const res = await fetchWithCircuitBreaker('cb-halfopen', 'https://example.com/api', { retries: 1, baseDelay: 1 });
+      expect(res.status).toBe(200);
+      expect(getCircuitState('cb-halfopen')).toEqual({ isOpen: false, failures: 0 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('annule le timer de timeout même quand fetch rejette (pas de timer pendant)', async () => {
+    jest.useFakeTimers();
+    try {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      await expect(
+        fetchWithRetry('https://example.com/api', { retries: 1, baseDelay: 1, timeout: 10000 })
+      ).rejects.toThrow('Network error');
+      expect(jest.getTimerCount()).toBe(0);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });
 
 describe('getCircuitState', () => {

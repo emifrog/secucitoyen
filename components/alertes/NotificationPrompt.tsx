@@ -6,7 +6,6 @@ import {
   isNotificationSupported,
   showNotification,
   getNotificationSettings,
-  checkAndNotifyAlerts,
   subscribeToPush,
 } from '@/lib/notifications';
 import { getSavedDepartment } from '@/lib/geolocation';
@@ -32,11 +31,8 @@ export default function NotificationPrompt() {
     if (wasDismissed) {
       setDismissed(true);
     }
-
-    // Si notifications activées, vérifier les alertes
-    if (settings.enabled && settings.permission === 'granted') {
-      checkAndNotifyAlerts();
-    }
+    // Les alertes sont poussées par le cron serveur (ciblées par département) :
+    // plus de vérification ni de notification côté client.
   }, []);
 
   const handleRequestPermission = async () => {
@@ -56,8 +52,6 @@ export default function NotificationPrompt() {
         showNotification('SécuCitoyen activé', {
           body: 'Vous recevrez les alertes de vigilance météo en temps réel.',
         });
-        // Vérifier immédiatement les alertes
-        checkAndNotifyAlerts();
       } else {
         setPermission(Notification.permission as PermissionState);
       }

@@ -51,8 +51,9 @@ self.addEventListener('push', (event) => {
 
     const options = {
       body: data.body || '',
-      icon: data.icon || '/icons/icon-192x192.svg',
-      badge: data.badge || '/icons/icon-72x72.svg',
+      // PNG : Chrome Android ignore les icônes SVG des notifications.
+      icon: data.icon || '/icons/icon-192x192.png',
+      badge: data.badge || '/icons/icon-192x192.png',
       tag: data.tag || 'secucitoyen-alert',
       renotify: true,
       requireInteraction: data.requireInteraction || false,

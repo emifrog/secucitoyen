@@ -3,55 +3,69 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import type { UnifiedAlert } from '@/lib/types/api-responses';
+import { getSavedDepartment } from '@/lib/geolocation';
 
 const severityConfig = {
   rouge: {
-    bg: 'bg-red-600',
+    bg: 'bg-red-600 text-white',
     text: 'Alerte rouge',
     icon: '🔴',
     priority: 4,
   },
   orange: {
-    bg: 'bg-orange-500',
+    bg: 'bg-orange-500 text-white',
     text: 'Vigilance orange',
     icon: '🟠',
     priority: 3,
   },
   jaune: {
-    bg: 'bg-yellow-500 text-gray-900',
+    bg: 'bg-yellow-400 text-gray-900',
     text: 'Vigilance jaune',
     icon: '🟡',
     priority: 2,
   },
   vert: {
-    bg: 'bg-green-500',
+    bg: 'bg-green-500 text-white',
     text: 'Vigilance verte',
     icon: '🟢',
     priority: 1,
   },
 };
 
+const REFRESH_MS = 5 * 60 * 1000;
+const ROTATION_MS = 5000;
+
 export default function AlertBanner() {
   const [alerts, setAlerts] = useState<UnifiedAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [dismissed, setDismissed] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  // Rotation suspendue au survol/focus (WCAG 2.2.2 : contenu qui change
+  // automatiquement).
+  const [paused, setPaused] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
-    try {
-      // Récupérer le département depuis le localStorage
-      const savedDept = localStorage.getItem('secucitoyen_department');
-      const dept = savedDept || '75'; // Paris par défaut
+    // Sans département choisi, on n'affiche rien : montrer les alertes d'un
+    // département par défaut (Paris) laissait croire qu'elles concernaient
+    // l'utilisateur.
+    const dept = getSavedDepartment();
+    if (!dept) {
+      setAlerts([]);
+      setLoading(false);
+      return;
+    }
 
-      const response = await fetch(`/api/alerts?dept=${dept}`);
+    try {
+      const response = await fetch(`/api/alerts?dept=${encodeURIComponent(dept)}`);
       const data = await response.json();
 
-      if (data.alerts && data.alerts.length > 0) {
+      if (Array.isArray(data.alerts) && data.alerts.length > 0) {
         // Filtrer uniquement les alertes orange et rouge
-        const severeAlerts = data.alerts.filter(
-          (alert: UnifiedAlert) => alert.level === 'orange' || alert.level === 'rouge'
+        setAlerts(
+          data.alerts.filter(
+            (alert: UnifiedAlert) => alert.level === 'orange' || alert.level === 'rouge'
+          )
         );
-        setAlerts(severeAlerts);
       } else {
         setAlerts([]);
       }
@@ -65,10 +79,7 @@ export default function AlertBanner() {
 
   useEffect(() => {
     fetchAlerts();
-
-    // Rafraîchir toutes les 5 minutes
-    const interval = setInterval(fetchAlerts, 5 * 60 * 1000);
-
+    const interval = setInterval(fetchAlerts, REFRESH_MS);
     return () => clearInterval(interval);
   }, [fetchAlerts]);
 
@@ -77,14 +88,13 @@ export default function AlertBanner() {
   // l'index pointait au-delà (TypeError au rendu sinon).
   useEffect(() => {
     setCurrentIndex(0);
-    if (alerts.length > 1) {
+    if (alerts.length > 1 && !paused) {
       const rotationInterval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % alerts.length);
-      }, 5000); // Change toutes les 5 secondes
-
+      }, ROTATION_MS);
       return () => clearInterval(rotationInterval);
     }
-  }, [alerts.length]);
+  }, [alerts.length, paused]);
 
   if (loading || alerts.length === 0 || dismissed) {
     return null;
@@ -95,15 +105,22 @@ export default function AlertBanner() {
   const config = severityConfig[currentAlert.level] || severityConfig.jaune;
 
   return (
-    <div role="alert" aria-live="polite" className={`${config.bg} text-white px-4 py-3`}>
-      <Link href="/alertes" className="flex items-center justify-between">
+    <div
+      role="status"
+      className={`${config.bg} px-4 py-3`}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      <Link href={`/alertes/${encodeURIComponent(currentAlert.id)}`} className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className="text-lg flex-shrink-0">{currentAlert.icon || config.icon}</span>
+          <span className="text-lg flex-shrink-0" aria-hidden="true">{currentAlert.icon || config.icon}</span>
           <div className="min-w-0 flex-1">
             <div className="text-xs font-medium opacity-90 flex items-center gap-2">
               <span>{config.text}</span>
               {alerts.length > 1 && (
-                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px]">
+                <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs">
                   {currentIndex + 1}/{alerts.length}
                 </span>
               )}
@@ -123,10 +140,10 @@ export default function AlertBanner() {
               e.preventDefault();
               setDismissed(true);
             }}
-            className="p-1 hover:bg-white/20 rounded-full transition-colors"
+            className="p-2 -m-1 hover:bg-white/20 rounded-full transition-colors"
             aria-label="Fermer l'alerte"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

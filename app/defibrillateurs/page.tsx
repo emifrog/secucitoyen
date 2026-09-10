@@ -237,14 +237,20 @@ export default function DefibrilateursPage() {
       {/* Liste des DAE */}
       {userLocation && !loading && !error && (
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <h3 className="font-semibold text-gray-800 dark:text-gray-100">
               {defibrillateurs.length} DAE trouvé{defibrillateurs.length > 1 ? 's' : ''}
             </h3>
             {source && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">{source}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 text-right">{source}</span>
             )}
           </div>
+          {defibrillateurs.length > 0 && (
+            <p className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
+              Données contributives (OpenStreetMap) : un DAE peut avoir été déplacé ou être
+              hors service. Le régulateur du 15 / 112 connaît les DAE référencés officiellement.
+            </p>
+          )}
 
           {defibrillateurs.length === 0 ? (
             <Card className="text-center py-8">

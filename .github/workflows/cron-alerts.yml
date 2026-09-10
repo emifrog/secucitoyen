@@ -3,24 +3,79 @@ name: Check alerts (scheduled)
 # Déclenche l'envoi des notifications d'alerte toutes les 15 minutes.
 # Alternative gratuite au Vercel Cron (indisponible < 1x/jour sur le plan Hobby).
 #
-# Secrets à configurer dans le dépôt (Settings → Secrets and variables → Actions) :
-#   PRODUCTION_URL : ex. https://secucitoyen.vercel.app (sans slash final)
-#   CRON_SECRET    : identique à la variable d'env Vercel
+# À configurer dans le dépôt (Settings → Secrets and variables → Actions) :
+#   Variable PRODUCTION_URL : ex. https://secucitoyen.vercel.app (sans slash final)
+#                             (un secret du même nom est encore accepté)
+#   Secret   CRON_SECRET    : identique à la variable d'env Vercel
 #
-# Note : les workflows planifiés GitHub peuvent être retardés en cas de charge
-# et sont désactivés après 60 j d'inactivité du dépôt.
+# Notes :
+# - Les workflows planifiés GitHub peuvent être retardés en cas de charge et
+#   sont désactivés après 60 j d'inactivité du dépôt → prévoir un déclencheur
+#   externe redondant (cron-job.org, UptimeRobot…) sur le même endpoint.
+# - `concurrency` empêche deux runs simultanés (l'endpoint est idempotent
+#   depuis la migration 005, mais inutile de doubler les appels amont).
+# - Un échec (HTTP ≠ 200, dont 502 = vigilance Météo-France indisponible)
+#   ouvre ou commente une issue étiquetée `cron-alerts`.
 
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: cron-alerts
+  cancel-in-progress: false
+
 jobs:
   trigger:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL || secrets.PRODUCTION_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
     steps:
       - name: Ping check-alerts endpoint
         run: |
-          curl -fsS --max-time 60 -X GET \
-            "${{ secrets.PRODUCTION_URL }}/api/cron/check-alerts" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          set -uo pipefail
+          if [ -z "${PRODUCTION_URL}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "::error::PRODUCTION_URL ou CRON_SECRET manquant"
+            exit 1
+          fi
+          response=$(curl -sS --max-time 90 -X GET \
+            -w '\n%{http_code}' \
+            "${PRODUCTION_URL}/api/cron/check-alerts" \
+            -H "Authorization: Bearer ${CRON_SECRET}")
+          code=$(printf '%s' "$response" | tail -n 1)
+          body=$(printf '%s' "$response" | sed '$d')
+          echo "HTTP ${code}"
+          echo "${body}"
+          if [ "${code}" != "200" ]; then
+            echo "::error::check-alerts a répondu HTTP ${code}"
+            exit 1
+          fi
+
+      - name: Signaler l'échec dans une issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh label create cron-alerts --repo "${GITHUB_REPOSITORY}" \
+            --color D93F0B --description "Échecs du cron de notifications" --force >/dev/null 2>&1 || true
+          existing=$(gh issue list --repo "${GITHUB_REPOSITORY}" --label cron-alerts --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "${existing}" ]; then
+            gh issue comment "${existing}" --repo "${GITHUB_REPOSITORY}" \
+              --body "Nouvel échec du cron check-alerts : ${run_url}"
+          else
+            gh issue create --repo "${GITHUB_REPOSITORY}" --label cron-alerts \
+              --title "Cron check-alerts en échec" \
+              --body "Le workflow planifié d'envoi des notifications a échoué : ${run_url}
+
+Causes fréquentes : vigilance Météo-France indisponible (HTTP 502), secret CRON_SECRET désynchronisé (401), fonction Vercel expirée. Fermer cette issue une fois le cron revenu au vert."
+          fi

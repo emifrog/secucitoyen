@@ -5,6 +5,10 @@ import AlertBanner from '@/components/home/AlertBanner';
 import DailyTip from '@/components/home/DailyTip';
 import SeasonalTips from '@/components/home/SeasonalTips';
 
+// Les conseils de saison sont rendus côté serveur : revalidation quotidienne
+// pour suivre le changement de saison sans redéploiement.
+export const revalidate = 86400;
+
 const quickActions = [
   {
     href: '/urgences',

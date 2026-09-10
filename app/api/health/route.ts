@@ -9,6 +9,7 @@ const SOURCES = [
   'open-meteo-forecast',
   'vigicrues',
   'opendatasoft-dae',
+  'geo-api-gouv',
 ] as const;
 
 export async function GET() {

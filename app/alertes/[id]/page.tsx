@@ -3,28 +3,50 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Alert, alertLevels, alertTypes, mockAlerts, getAdviceForAlert } from '@/lib/alertes';
+import { alertLevels, alertTypes } from '@/lib/alertes';
+import { getSavedDepartment } from '@/lib/geolocation';
+import type { UnifiedAlert } from '@/lib/types/api-responses';
 import { Card } from '@/components/ui';
 
 export default function AlertDetailPage() {
   const params = useParams();
-  const [alert, setAlert] = useState<Alert | null>(null);
+  const [alert, setAlert] = useState<UnifiedAlert | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simuler le chargement
-    const loadAlert = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    // L'alerte est cherchée dans les données réelles de /api/alerts : d'abord
+    // pour le département sauvegardé (réponse plus courte, en cache CDN),
+    // puis en vue nationale (lien reçu par notification pour un autre
+    // département, ou aucun département choisi).
+    const id = String(params.id ?? '');
+    const controller = new AbortController();
 
-      const found = mockAlerts.find((a) => a.id === params.id);
-      if (found) {
-        const advice = getAdviceForAlert(found.type, found.level);
-        setAlert({ ...found, advice });
+    const findIn = async (query: string): Promise<UnifiedAlert | null> => {
+      const response = await fetch(`/api/alerts${query}`, { signal: controller.signal });
+      if (!response.ok) return null;
+      const data = await response.json();
+      return (data.alerts as UnifiedAlert[] | undefined)?.find((a) => a.id === id) ?? null;
+    };
+
+    const loadAlert = async () => {
+      setLoading(true);
+      try {
+        const dept = getSavedDepartment();
+        let found = await findIn(dept ? `?dept=${encodeURIComponent(dept)}` : '');
+        if (!found && dept) found = await findIn('');
+        if (!controller.signal.aborted) setAlert(found);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Erreur chargement alerte:', error);
+          setAlert(null);
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-      setLoading(false);
     };
 
     loadAlert();
+    return () => controller.abort();
   }, [params.id]);
 
   if (loading) {
@@ -74,8 +96,8 @@ export default function AlertDetailPage() {
             </svg>
           </Link>
           <div className="flex items-center gap-2 flex-1">
-            <span className="text-2xl">{typeInfo?.icon || '⚠️'}</span>
-            <h1 className="font-bold text-gray-800 dark:text-gray-100 truncate">{typeInfo?.name || alert.type}</h1>
+            <span className="text-2xl" aria-hidden="true">{alert.icon || typeInfo?.icon || '⚠️'}</span>
+            <h1 className="font-bold text-gray-800 dark:text-gray-100 truncate">{typeInfo?.name || alert.title}</h1>
           </div>
         </div>
       </div>
@@ -84,7 +106,7 @@ export default function AlertDetailPage() {
         {/* Header alerte */}
         <section className={`${levelConfig.bgColor} ${levelConfig.textOnBg} rounded-2xl p-5`}>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-3xl">{typeInfo?.icon || '⚠️'}</span>
+            <span className="text-3xl" aria-hidden="true">{alert.icon || typeInfo?.icon || '⚠️'}</span>
             <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
               {levelConfig.name}
             </span>
