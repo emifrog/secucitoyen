@@ -5,6 +5,7 @@ import { Header, BottomNav, SideNav, InstallPrompt, UpdatePrompt } from "@/compo
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/providers";
 import EmergencyFab from "@/components/layout/EmergencyFab";
+import ServiceWorkerRegister from "@/components/layout/ServiceWorkerRegister";
 import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -90,6 +91,8 @@ export default function RootLayout({
               <BottomNav />
             </div>
           </div>
+          {/* Enregistrement du SW (next-pwa ne le fait pas en App Router). */}
+          <ServiceWorkerRegister />
           <Analytics />
         </ThemeProvider>
       </body>

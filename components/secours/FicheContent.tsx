@@ -25,10 +25,13 @@ interface FicheContentProps {
   fiche: FicheSecours;
 }
 
+// `fg` : couleur du texte posé SUR `bg`. Blanc sur jaune ≈ 1,9:1 (échec WCAG
+// 1.4.3), d'où un texte sombre pour le niveau modéré.
 const urgencyConfig = {
   critical: {
     label: 'Urgence vitale',
     bg: 'bg-red-600',
+    fg: 'text-white',
     border: 'border-red-500',
     light: 'bg-red-50',
     text: 'text-red-800',
@@ -36,6 +39,7 @@ const urgencyConfig = {
   high: {
     label: 'Urgence haute',
     bg: 'bg-orange-500',
+    fg: 'text-white',
     border: 'border-orange-500',
     light: 'bg-orange-50',
     text: 'text-orange-800',
@@ -43,6 +47,7 @@ const urgencyConfig = {
   medium: {
     label: 'Urgence modérée',
     bg: 'bg-yellow-500',
+    fg: 'text-gray-900',
     border: 'border-yellow-500',
     light: 'bg-yellow-50',
     text: 'text-yellow-800',
@@ -96,7 +101,7 @@ export default function FicheContent({ fiche }: FicheContentProps) {
       )}
 
       {/* Badge urgence */}
-      <div className={`${config.bg} text-white px-4 py-3 rounded-xl flex items-center justify-between`}>
+      <div className={`${config.bg} ${config.fg} px-4 py-3 rounded-xl flex items-center justify-between`}>
         <div>
           <div className="text-xs opacity-80">Niveau d&apos;urgence</div>
           <div className="font-bold">{config.label}</div>

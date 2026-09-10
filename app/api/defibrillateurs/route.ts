@@ -5,6 +5,11 @@ import type { OpenDataSoftDAEResponse, OpenDataSoftDAERecord } from '@/lib/types
 
 // API pour trouver les défibrillateurs (DAE) à proximité
 // Source : data.gouv.fr - Base nationale des défibrillateurs
+//
+// Aucun DAE n'est jamais inventé : en cas d'indisponibilité de la source, la
+// route renvoie 503 et une liste vide. Envoyer quelqu'un vers un défibrillateur
+// fictif pendant un arrêt cardiaque serait dangereux ; l'UI affiche alors
+// « appelez le 15 / 112, le régulateur vous indiquera le DAE le plus proche ».
 
 export interface Defibrillateur {
   id: string;
@@ -21,6 +26,21 @@ export interface Defibrillateur {
 
 export const dynamic = 'force-dynamic';
 
+// Bornes des paramètres (anti-abus : un `limit` non borné allouait autant
+// d'objets que demandé ; un rayon énorme fait exploser la bounding box amont).
+const RADIUS_MIN = 100;
+const RADIUS_MAX = 10_000;
+const RADIUS_DEFAULT = 2_000;
+const LIMIT_MIN = 1;
+const LIMIT_MAX = 50;
+const LIMIT_DEFAULT = 20;
+
+function clampInt(raw: string | null, fallback: number, min: number, max: number): number {
+  const parsed = raw === null ? NaN : parseInt(raw, 10);
+  const value = Number.isFinite(parsed) ? parsed : fallback;
+  return Math.min(max, Math.max(min, value));
+}
+
 // Calcul de distance Haversine en mètres
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000; // Rayon de la Terre en mètres
@@ -34,6 +54,25 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
+function unavailableResponse(
+  reason: string,
+  center: { lat: number; lon: number },
+  radiusMeters: number
+) {
+  return NextResponse.json(
+    {
+      defibrillateurs: [] as Defibrillateur[],
+      count: 0,
+      error: 'Service de localisation des DAE indisponible',
+      unavailable: true,
+      reason,
+      searchRadius: radiusMeters,
+      center,
+    },
+    { status: 503 }
+  );
+}
+
 export async function GET(request: Request) {
   const limited = rateLimited(request, { key: 'dae', limit: 40, windowMs: 60 * 1000 });
   if (limited) return limited;
@@ -41,8 +80,6 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');
-  const radius = searchParams.get('radius') || '2000'; // 2km par défaut
-  const limit = searchParams.get('limit') || '20';
 
   if (!lat || !lon) {
     return NextResponse.json({
@@ -51,16 +88,25 @@ export async function GET(request: Request) {
     }, { status: 400 });
   }
 
-  const latitude = parseFloat(lat);
-  const longitude = parseFloat(lon);
-  const radiusMeters = parseInt(radius);
-  const maxResults = parseInt(limit);
+  const latitude = Number(lat);
+  const longitude = Number(lon);
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    Math.abs(latitude) > 90 ||
+    Math.abs(longitude) > 180
+  ) {
+    return NextResponse.json({
+      error: 'Coordonnées invalides',
+      defibrillateurs: [],
+    }, { status: 400 });
+  }
+
+  const radiusMeters = clampInt(searchParams.get('radius'), RADIUS_DEFAULT, RADIUS_MIN, RADIUS_MAX);
+  const maxResults = clampInt(searchParams.get('limit'), LIMIT_DEFAULT, LIMIT_MIN, LIMIT_MAX);
+  const center = { lat: latitude, lon: longitude };
 
   try {
-    // API GéoDAE (données ouvertes défibrillateurs)
-    // Documentation : https://geo.api.gouv.fr/
-    // Alternative : API data.gouv.fr avec dataset des DAE
-
     // Calcul de la bounding box pour optimiser la requête
     const latDelta = radiusMeters / 111000; // ~111km par degré
     const lonDelta = radiusMeters / (111000 * Math.cos(latitude * Math.PI / 180));
@@ -70,7 +116,7 @@ export async function GET(request: Request) {
     const minLon = longitude - lonDelta;
     const maxLon = longitude + lonDelta;
 
-    // Requête à l'API des DAE de data.gouv.fr via leur API
+    // Requête à l'API des DAE de data.gouv.fr via OpenDataSoft
     const apiUrl = `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-france-defibrillateur-automatique-externe-dae/records?where=geo_point_2d%20within%20(${minLat}%2C%20${minLon}%2C%20${maxLat}%2C%20${maxLon})&limit=100`;
 
     const response = await fetchWithCircuitBreaker('opendatasoft-dae', apiUrl, {
@@ -82,23 +128,15 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
-      // Fallback : générer des données simulées pour demo
-      // En production, on utiliserait l'API réelle
-      console.warn('API DAE non disponible, utilisation du fallback');
-      return NextResponse.json({
-        defibrillateurs: generateFallbackDAE(latitude, longitude, radiusMeters, maxResults),
-        count: maxResults,
-        source: 'Données simulées (API non disponible)',
-        searchRadius: radiusMeters,
-        center: { lat: latitude, lon: longitude },
-      });
+      console.warn(`API DAE non disponible (HTTP ${response.status})`);
+      return unavailableResponse(`HTTP ${response.status}`, center, radiusMeters);
     }
 
     const data: OpenDataSoftDAEResponse = await response.json();
 
     // Transformer les résultats
     const defibrillateurs = (data.results || [])
-      .map((record: OpenDataSoftDAERecord) => {
+      .map((record: OpenDataSoftDAERecord): Defibrillateur | null => {
         const geoPoint = record.geo_point_2d;
         if (!geoPoint) return null;
 
@@ -109,7 +147,7 @@ export async function GET(request: Request) {
         if (distance > radiusMeters) return null;
 
         return {
-          id: String(record.c_gid || record.id || Math.random()),
+          id: String(record.c_gid || record.id || `${dLat},${dLon}`),
           nom: String(record.c_nom || record.nom_site || 'Défibrillateur'),
           adresse: String(record.c_adr_voie || record.adr_voie || ''),
           commune: String(record.c_com_nom || record.commune || ''),
@@ -121,7 +159,7 @@ export async function GET(request: Request) {
           distance: Math.round(distance),
         };
       })
-      .filter(Boolean) as Defibrillateur[];
+      .filter((d): d is Defibrillateur => d !== null);
 
     defibrillateurs.sort((a, b) => (a.distance || 0) - (b.distance || 0));
     const limitedResults = defibrillateurs.slice(0, maxResults);
@@ -131,72 +169,10 @@ export async function GET(request: Request) {
       count: limitedResults.length,
       source: 'OpenDataSoft - DAE France',
       searchRadius: radiusMeters,
-      center: { lat: latitude, lon: longitude },
+      center,
     });
   } catch (error) {
     console.error('Erreur API défibrillateurs:', error);
-
-    // Fallback avec données simulées
-    return NextResponse.json({
-      defibrillateurs: generateFallbackDAE(latitude, longitude, radiusMeters, maxResults),
-      count: maxResults,
-      source: 'Données simulées (erreur API)',
-      searchRadius: radiusMeters,
-      center: { lat: latitude, lon: longitude },
-    });
+    return unavailableResponse('exception', center, radiusMeters);
   }
-}
-
-// Génère des DAE simulés pour le fallback/démo
-function generateFallbackDAE(lat: number, lon: number, radius: number, count: number): Defibrillateur[] {
-  const types = [
-    'Mairie',
-    'Centre commercial',
-    'Gare SNCF',
-    'Pharmacie',
-    'Salle de sport',
-    'Piscine municipale',
-    'Stade',
-    'École primaire',
-    'Collège',
-    'Poste de police',
-    'Caserne pompiers',
-    'Centre culturel',
-    'Bibliothèque',
-    'Supermarché',
-  ];
-
-  const accessibilites = [
-    'Accessible 24h/24',
-    'Heures d\'ouverture',
-    'Sur demande',
-    'Extérieur',
-  ];
-
-  const result: Defibrillateur[] = [];
-
-  for (let i = 0; i < count; i++) {
-    // Position aléatoire dans le rayon
-    const angle = Math.random() * 2 * Math.PI;
-    const distance = Math.random() * radius;
-    const dLat = distance * Math.cos(angle) / 111000;
-    const dLon = distance * Math.sin(angle) / (111000 * Math.cos(lat * Math.PI / 180));
-
-    const type = types[Math.floor(Math.random() * types.length)];
-
-    result.push({
-      id: `dae-${i + 1}`,
-      nom: `${type}`,
-      adresse: `${Math.floor(Math.random() * 100) + 1} rue Exemple`,
-      commune: 'Commune',
-      codePostal: '75000',
-      latitude: lat + dLat,
-      longitude: lon + dLon,
-      accessibilite: accessibilites[Math.floor(Math.random() * accessibilites.length)],
-      disponibilite: Math.random() > 0.3 ? '24h/24' : 'Heures d\'ouverture',
-      distance: Math.round(distance),
-    });
-  }
-
-  return result.sort((a, b) => (a.distance || 0) - (b.distance || 0));
 }

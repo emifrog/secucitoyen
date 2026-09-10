@@ -72,8 +72,11 @@ export default function AlertBanner() {
     return () => clearInterval(interval);
   }, [fetchAlerts]);
 
-  // Rotation des alertes si plusieurs
+  // Rotation des alertes si plusieurs. L'index est remis à zéro à chaque
+  // changement de liste : le refresh périodique peut la raccourcir alors que
+  // l'index pointait au-delà (TypeError au rendu sinon).
   useEffect(() => {
+    setCurrentIndex(0);
     if (alerts.length > 1) {
       const rotationInterval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % alerts.length);
@@ -87,7 +90,8 @@ export default function AlertBanner() {
     return null;
   }
 
-  const currentAlert = alerts[currentIndex];
+  // Garde défensive : jamais hors bornes même entre deux rendus.
+  const currentAlert = alerts[currentIndex % alerts.length];
   const config = severityConfig[currentAlert.level] || severityConfig.jaune;
 
   return (

@@ -82,7 +82,7 @@ export default function AlertDetailPage() {
 
       <div className="px-4 space-y-5 mt-4">
         {/* Header alerte */}
-        <section className={`${levelConfig.bgColor} text-white rounded-2xl p-5`}>
+        <section className={`${levelConfig.bgColor} ${levelConfig.textOnBg} rounded-2xl p-5`}>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-3xl">{typeInfo?.icon || '⚠️'}</span>
             <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
@@ -91,10 +91,10 @@ export default function AlertDetailPage() {
           </div>
           <h2 className="text-xl font-bold mb-2">{alert.title}</h2>
           {alert.department && (
-            <p className="text-white/90 font-medium">{alert.department}</p>
+            <p className="opacity-90 font-medium">{alert.department}</p>
           )}
-          <p className="text-white/80 text-sm mt-2">{alert.description}</p>
-          <div className="flex items-center gap-2 mt-4 text-sm text-white/70">
+          <p className="opacity-80 text-sm mt-2">{alert.description}</p>
+          <div className="flex items-center gap-2 mt-4 text-sm opacity-70">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -119,7 +119,7 @@ export default function AlertDetailPage() {
             <ul className="space-y-3">
               {alert.advice.map((advice, index) => (
                 <li key={index} className="flex items-start gap-3">
-                  <span className={`flex-shrink-0 w-6 h-6 ${levelConfig.bgColor} text-white rounded-full flex items-center justify-center text-xs font-bold`}>
+                  <span className={`flex-shrink-0 w-6 h-6 ${levelConfig.bgColor} ${levelConfig.textOnBg} rounded-full flex items-center justify-center text-xs font-bold`}>
                     {index + 1}
                   </span>
                   <span className="text-gray-700 dark:text-gray-300">{advice}</span>

@@ -184,7 +184,7 @@ export const emergencyNumbers: EmergencyNumber[] = [
     searchKeywords: ['violence', 'femme', 'conjugale', 'couple', 'harcèlement'],
   },
   {
-    number: '0 800 05 95 95',
+    number: '0 800 06 66 66',
     name: 'Canicule Info Service',
     description: 'En période de canicule',
     icon: '🌡️',

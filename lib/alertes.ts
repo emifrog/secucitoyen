@@ -38,13 +38,16 @@ export interface AlertTypeInfo {
   };
 }
 
-export const alertLevels: Record<AlertLevel, { name: string; color: string; bgColor: string; borderColor: string; textColor: string }> = {
+// `textOnBg` : couleur de texte lisible SUR `bgColor` (WCAG 1.4.3). Le blanc
+// sur jaune ne dépasse pas 1,9:1 ; on impose un texte sombre pour ce niveau.
+export const alertLevels: Record<AlertLevel, { name: string; color: string; bgColor: string; borderColor: string; textColor: string; textOnBg: string }> = {
   vert: {
     name: 'Vigilance verte',
     color: '#22c55e',
     bgColor: 'bg-green-500',
     borderColor: 'border-green-500',
     textColor: 'text-green-800',
+    textOnBg: 'text-white',
   },
   jaune: {
     name: 'Vigilance jaune',
@@ -52,6 +55,7 @@ export const alertLevels: Record<AlertLevel, { name: string; color: string; bgCo
     bgColor: 'bg-yellow-400',
     borderColor: 'border-yellow-400',
     textColor: 'text-yellow-800',
+    textOnBg: 'text-gray-900',
   },
   orange: {
     name: 'Vigilance orange',
@@ -59,6 +63,7 @@ export const alertLevels: Record<AlertLevel, { name: string; color: string; bgCo
     bgColor: 'bg-orange-500',
     borderColor: 'border-orange-500',
     textColor: 'text-orange-800',
+    textOnBg: 'text-white',
   },
   rouge: {
     name: 'Vigilance rouge',
@@ -66,6 +71,7 @@ export const alertLevels: Record<AlertLevel, { name: string; color: string; bgCo
     bgColor: 'bg-red-600',
     borderColor: 'border-red-600',
     textColor: 'text-red-800',
+    textOnBg: 'text-white',
   },
 };
 

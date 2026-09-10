@@ -24,24 +24,34 @@ export default function DefibrilateursPage() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [radius, setRadius] = useState(2000);
   const [source, setSource] = useState<string>('');
+  // Service DAE indisponible (503) : état bloquant, on ne montre jamais de
+  // données de substitution — la seule consigne sûre est d'appeler le 15/112.
+  const [unavailable, setUnavailable] = useState(false);
 
   const loadDefibrillateurs = async (lat: number, lon: number) => {
     setLoading(true);
     setError(null);
+    setUnavailable(false);
 
     try {
       const response = await fetch(
         `/api/defibrillateurs?lat=${lat}&lon=${lon}&radius=${radius}&limit=20`
       );
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (data.error) {
-        setError(data.error);
+      if (!response.ok || data.error) {
+        setDefibrillateurs([]);
+        setSource('');
+        setUnavailable(response.status === 503 || data.unavailable === true);
+        setError(data.error || 'Erreur lors de la recherche des défibrillateurs');
       } else {
         setDefibrillateurs(data.defibrillateurs || []);
         setSource(data.source || '');
       }
     } catch {
+      setDefibrillateurs([]);
+      setSource('');
+      setUnavailable(true);
       setError('Erreur lors de la recherche des défibrillateurs');
     } finally {
       setLoading(false);
@@ -184,15 +194,48 @@ export default function DefibrilateursPage() {
         </section>
       )}
 
-      {/* Erreur */}
-      {error && (
-        <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
+      {/* Service indisponible : consigne bloquante, pas de liste */}
+      {unavailable && !loading && (
+        <div
+          role="alert"
+          className="p-4 bg-red-600 text-white rounded-xl space-y-3 border-2 border-red-700"
+        >
+          <p className="font-bold text-lg">Service de localisation des DAE indisponible</p>
+          <p className="text-sm text-white/90">
+            Nous ne pouvons pas vous indiquer de défibrillateur pour le moment.
+            En cas d&apos;arrêt cardiaque, appelez le{' '}
+            <a href="tel:15" className="font-bold underline">15</a> ou le{' '}
+            <a href="tel:112" className="font-bold underline">112</a> : le régulateur
+            vous indiquera le DAE le plus proche et vous guidera pour le massage cardiaque.
+          </p>
+          <div className="flex gap-2">
+            <a
+              href="tel:15"
+              className="flex-1 text-center bg-white text-red-700 font-bold py-3 rounded-lg"
+            >
+              Appeler le 15
+            </a>
+            {userLocation && (
+              <button
+                onClick={() => loadDefibrillateurs(userLocation.lat, userLocation.lon)}
+                className="flex-1 bg-white/20 hover:bg-white/30 font-medium py-3 rounded-lg transition-colors"
+              >
+                Réessayer
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Autre erreur (géolocalisation, paramètres…) */}
+      {error && !unavailable && (
+        <div role="alert" className="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
           {error}
         </div>
       )}
 
       {/* Liste des DAE */}
-      {userLocation && !loading && (
+      {userLocation && !loading && !error && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-800 dark:text-gray-100">

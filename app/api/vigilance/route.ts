@@ -105,11 +105,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({
-        alerts: generateSeasonalAlerts(deptCode),
-        source: 'simulation',
-        updatedAt: new Date().toISOString(),
-      });
+      return degradedResponse(`Vigilance Météo-France indisponible (HTTP ${response.status})`);
     }
 
     const data: DeptVigilanceResponse = await response.json();
@@ -118,19 +114,33 @@ export async function GET(request: Request) {
     return NextResponse.json({
       alerts,
       source: 'Météo-France',
+      degraded: false,
       updatedAt: new Date().toISOString(),
       count: data.total_count,
     });
   } catch (error) {
     console.error('Erreur API vigilance:', error);
-
-    return NextResponse.json({
-      alerts: generateSeasonalAlerts(deptCode),
-      source: 'simulation',
-      updatedAt: new Date().toISOString(),
-      error: 'Données simulées (API indisponible)',
-    });
+    return degradedResponse('Vigilance Météo-France indisponible');
   }
+}
+
+/**
+ * Réponse en cas d'indisponibilité de la source officielle.
+ *
+ * Aucune alerte n'est jamais fabriquée : une vigilance « simulée » présentée
+ * comme réelle peut déclencher une notification push à de vrais abonnés
+ * (l'agrégateur /api/alerts et le cron ne distinguaient pas la source).
+ * On renvoie une liste vide + `degraded: true`, l'UI affiche une bannière et
+ * renvoie vers vigilance.meteofrance.fr.
+ */
+function degradedResponse(reason: string) {
+  return NextResponse.json({
+    alerts: [] as Alert[],
+    source: 'Météo-France',
+    degraded: true,
+    error: reason,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 function parseVigilanceData(data: DeptVigilanceResponse): Alert[] {
@@ -175,96 +185,6 @@ function parseVigilanceData(data: DeptVigilanceResponse): Alert[] {
     if (levelDiff !== 0) return levelDiff;
     return (a.department || '').localeCompare(b.department || '');
   });
-
-  return alerts;
-}
-
-// Générer des alertes simulées basées sur la saison
-function generateSeasonalAlerts(deptCode: string | null): Alert[] {
-  const alerts: Alert[] = [];
-  const now = new Date();
-  const month = now.getMonth();
-
-  const demoAlerts: Partial<Alert>[] = [];
-
-  // Hiver (décembre-février): neige, grand froid
-  if (month >= 11 || month <= 1) {
-    demoAlerts.push({
-      type: 'neige-verglas',
-      level: 'jaune',
-      department: 'Hautes-Alpes',
-      departmentCode: '05',
-    });
-    demoAlerts.push({
-      type: 'avalanches',
-      level: 'jaune',
-      department: 'Savoie',
-      departmentCode: '73',
-    });
-  }
-
-  // Été (juin-août): canicule, orages
-  if (month >= 5 && month <= 7) {
-    demoAlerts.push({
-      type: 'canicule',
-      level: 'orange',
-      department: 'Bouches-du-Rhône',
-      departmentCode: '13',
-    });
-    demoAlerts.push({
-      type: 'orages',
-      level: 'jaune',
-      department: 'Haute-Garonne',
-      departmentCode: '31',
-    });
-  }
-
-  // Automne (septembre-novembre): pluie, vent
-  if (month >= 8 && month <= 10) {
-    demoAlerts.push({
-      type: 'pluie-inondation',
-      level: 'jaune',
-      department: 'Gard',
-      departmentCode: '30',
-    });
-    demoAlerts.push({
-      type: 'vent',
-      level: 'jaune',
-      department: 'Finistère',
-      departmentCode: '29',
-    });
-  }
-
-  // Printemps (mars-mai): orages
-  if (month >= 2 && month <= 4) {
-    demoAlerts.push({
-      type: 'orages',
-      level: 'jaune',
-      department: 'Gironde',
-      departmentCode: '33',
-    });
-  }
-
-  // Convertir en alertes complètes
-  for (const demo of demoAlerts) {
-    if (deptCode && demo.departmentCode !== deptCode) continue;
-
-    const typeInfo = alertTypes.find((t) => t.type === demo.type);
-
-    alerts.push({
-      id: `${demo.departmentCode}-${demo.type}`,
-      type: demo.type!,
-      level: demo.level!,
-      title: `Vigilance ${demo.level} ${typeInfo?.name || demo.type}`,
-      description: typeInfo?.description || '',
-      department: demo.department!,
-      departmentCode: demo.departmentCode!,
-      startDate: now.toISOString(),
-      updatedAt: now.toISOString(),
-      source: 'Simulation',
-      advice: getAdviceForAlert(demo.type!, demo.level!),
-    });
-  }
 
   return alerts;
 }

@@ -1,5 +1,37 @@
-// Custom Service Worker - Push Notifications Handler
+// Custom Service Worker - Push Notifications Handler + préchauffage hors-ligne
 // Ce fichier est automatiquement injecté par next-pwa dans le service worker
+// (bundlé par webpack : les imports relatifs sont résolus).
+
+import { OFFLINE_URLS } from './precache-urls';
+
+// Préchauffage du contenu critique à l'installation : les fiches de secours et
+// les numéros d'urgence doivent être disponibles hors-ligne DÈS l'installation,
+// sans avoir été visités. Les caches ciblés sont ceux des règles runtimeCaching
+// de next.config.mjs, servis ensuite par Workbox (StaleWhileRevalidate /
+// NetworkFirst). Un échec de préchauffage ne doit jamais faire échouer
+// l'installation du worker (allSettled + catch), sinon ni offline ni push.
+self.addEventListener('install', (event) => {
+  event.waitUntil(warmOfflineCaches());
+});
+
+async function warmOfflineCaches() {
+  for (const [cacheName, urls] of Object.entries(OFFLINE_URLS)) {
+    try {
+      const cache = await caches.open(cacheName);
+      await Promise.allSettled(
+        urls.map((url) =>
+          // `cache: 'reload'` : on contourne le cache HTTP du navigateur pour
+          // stocker la version fraîche du build en cours.
+          cache.add(new Request(url, { cache: 'reload' })).catch((err) => {
+            console.warn('[SW] Préchauffage impossible pour', url, err);
+          })
+        )
+      );
+    } catch (err) {
+      console.warn('[SW] Préchauffage du cache', cacheName, 'impossible :', err);
+    }
+  }
+}
 
 // Mise à jour à la demande : le client envoie SKIP_WAITING quand l'utilisateur
 // accepte la nouvelle version (voir UpdatePrompt). Le SW en attente s'active

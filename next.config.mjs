@@ -8,36 +8,66 @@ const analyzeBundles = withBundleAnalyzer({
 
 const pwaConfig = withPWA({
   dest: 'public',
-  register: true,
+  // L'auto-enregistrement de next-pwa n'injecte son script que dans l'entrée
+  // `main.js` (Pages Router) : en App Router il ne s'exécute jamais. Le worker
+  // est enregistré par components/layout/ServiceWorkerRegister.tsx.
+  register: false,
   // skipWaiting piloté par l'utilisateur via UpdatePrompt (message SKIP_WAITING
   // au worker) : la nouvelle version attend une confirmation « Recharger »
   // plutôt que de s'activer silencieusement.
   skipWaiting: false,
   disable: process.env.NODE_ENV === 'development',
+  // Le SDK Sentry supprime les source maps APRÈS leur upload (comportement par
+  // défaut quand SENTRY_AUTH_TOKEN est défini), alors que Workbox a déjà figé
+  // son manifeste de précache. Précacher un .map absent → 404 →
+  // `bad-precaching-response` → l'installation du SW échoue (ni offline, ni
+  // push). On exclut donc les maps du précache, ainsi que le shim pages-router
+  // (_app/_error) inutile en App Router.
+  // `app-build-manifest.json` : fichier interne du build App Router que Next ne
+  // sert pas sous /_next/ (404). next-pwa 5.x n'exclut que son équivalent
+  // Pages Router (`build-manifest.json`) ; sans cette exclusion l'installation
+  // du worker échouait systématiquement.
+  buildExcludes: [/\.map$/, /chunks\/pages\//, /app-build-manifest\.json$/],
+  // `/` est précaché avec la révision du build (sinon next-pwa le sert en
+  // NetworkFirst sans timeout : sur réseau dégradé, l'ouverture de l'app
+  // attend le timeout navigateur avant de retomber sur le cache).
+  dynamicStartUrl: false,
   runtimeCaching: [
     {
-      // Cache les pages de fiches secours pour offline.
-      // StaleWhileRevalidate : disponible hors-ligne ET rafraîchi en tâche de
-      // fond (une fiche de secours corrigée est repropagée sans attendre 30 j).
-      urlPattern: /^https?:\/\/.*\/secours\/.*/i,
+      // Fiches de secours : préchauffées à l'installation du SW
+      // (worker/index.js + worker/precache-urls.js) pour être disponibles
+      // hors-ligne AVANT toute visite, puis StaleWhileRevalidate (servies du
+      // cache, rafraîchies en tâche de fond).
+      // Matcher par fonction : uniquement les navigations same-origin, ce qui
+      // exclut les préchargements RSC (`?_rsc=`) et les chunks
+      // /_next/static/chunks/app/secours/… qui saturaient `maxEntries`.
+      urlPattern: ({ url, request }) =>
+        url.origin === self.location.origin &&
+        request.mode === 'navigate' &&
+        url.pathname.startsWith('/secours/'),
       handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'secours-fiches',
+        // Les entrées préchauffées sont ajoutées sans en-têtes de négociation :
+        // ne pas laisser un `Vary` amont faire échouer la correspondance.
+        matchOptions: { ignoreVary: true },
         expiration: {
-          maxEntries: 20,
+          maxEntries: 40,
           maxAgeSeconds: 60 * 60 * 24 * 30, // 30 jours
         },
       },
     },
     {
       // Pages de détail (urgences/[number], alertes/[id], prevention/[id],
-      // conseils-saison/[id]) : garanties offline via NetworkFirst
-      // (frais en ligne, dernier cache en secours hors-ligne).
+      // conseils-saison/[id]) : NetworkFirst avec timeout court (frais en ligne,
+      // dernier cache en secours hors-ligne). Les numéros d'urgence y sont
+      // préchauffés à l'installation.
       urlPattern: /^https?:\/\/.*\/(urgences|alertes|prevention|conseils-saison|defibrillateurs)\/[^/]+$/i,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'detail-pages',
-        networkTimeoutSeconds: 5,
+        networkTimeoutSeconds: 3,
+        matchOptions: { ignoreVary: true },
         expiration: {
           maxEntries: 40,
           maxAgeSeconds: 60 * 60 * 24 * 7, // 7 jours
@@ -45,11 +75,14 @@ const pwaConfig = withPWA({
       },
     },
     {
-      // Cache les pages statiques (racines de section + accueil)
+      // Racines de section (accueil précaché par ailleurs). Timeout réseau court :
+      // une app d'urgence ne doit jamais attendre le timeout navigateur.
       urlPattern: /^https?:\/\/.*\/(secours|prevention|urgences|alertes)?$/i,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'pages',
+        networkTimeoutSeconds: 3,
+        matchOptions: { ignoreVary: true },
         expiration: {
           maxEntries: 10,
           maxAgeSeconds: 60 * 60 * 24, // 1 jour

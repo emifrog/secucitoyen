@@ -59,6 +59,9 @@ export async function GET(request: Request) {
   const baseUrl = getTrustedBaseUrl(request);
   const allAlerts: UnifiedAlert[] = [];
   const sources: string[] = [];
+  // Vrai dès qu'une source amont n'a pas répondu. Aucune donnée n'est jamais
+  // simulée : l'UI prévient simplement que la liste peut être incomplète.
+  let degraded = false;
 
   try {
     // 1. Récupérer les alertes Météo-France (vigilance)
@@ -72,7 +75,11 @@ export async function GET(request: Request) {
 
     if (vigilanceResponse.ok) {
       const vigilanceData = await vigilanceResponse.json();
-      sources.push(vigilanceData.source || 'Météo-France');
+      // La source amont est propagée telle quelle, jamais ré-étiquetée : c'est
+      // elle qui autorise (ou non) l'envoi d'une notification push par le cron.
+      const vigilanceSource: string = vigilanceData.source || 'Météo-France';
+      sources.push(vigilanceSource);
+      if (vigilanceData.degraded === true) degraded = true;
 
       for (const alert of vigilanceData.alerts || []) {
         allAlerts.push({
@@ -87,11 +94,13 @@ export async function GET(request: Request) {
           startDate: alert.startDate,
           endDate: alert.endDate,
           updatedAt: alert.updatedAt,
-          source: 'Météo-France',
+          source: vigilanceSource,
           advice: alert.advice || [],
           icon: alertIcons[alert.type] || '⚠️',
         });
       }
+    } else {
+      degraded = true;
     }
 
     // 2. Récupérer la qualité de l'air
@@ -128,6 +137,8 @@ export async function GET(request: Request) {
           icon: '😷',
         });
       }
+    } else {
+      degraded = true;
     }
 
     // 3. Récupérer les vigilances crues (Vigicrues)
@@ -166,6 +177,8 @@ export async function GET(request: Request) {
           });
         }
       }
+    } else {
+      degraded = true;
     }
 
     // 4. Récupérer le risque incendie forêt (Météo des forêts)
@@ -214,6 +227,8 @@ export async function GET(request: Request) {
             });
           }
         }
+      } else {
+        degraded = true;
       }
     }
 
@@ -289,6 +304,7 @@ export async function GET(request: Request) {
       count: allAlerts.length,
       stats,
       sources: uniqueSources,
+      degraded,
       updatedAt: new Date().toISOString(),
       filters: {
         department: deptCode || null,
@@ -303,6 +319,7 @@ export async function GET(request: Request) {
       count: 0,
       stats: { meteo: 0, inondation: 0, incendie: 0, pollution: 0 },
       sources: [],
+      degraded: true,
       updatedAt: new Date().toISOString(),
       error: 'Erreur lors de la récupération des alertes',
     });

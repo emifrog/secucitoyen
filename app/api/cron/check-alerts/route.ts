@@ -22,7 +22,16 @@ interface AlertData {
   description: string;
   department?: string;
   departmentCode?: string;
+  source?: string;
 }
+
+/**
+ * Seules les sources qui émettent des vigilances officielles peuvent déclencher
+ * une notification push. Les indices calculés par l'app (risque incendie « IFM »
+ * / « FWI », qualité de l'air modélisée) et toute donnée dégradée ou simulée
+ * restent consultables dans l'app mais ne sont jamais poussés.
+ */
+const OFFICIAL_PUSH_SOURCES = new Set(['Météo-France', 'Vigicrues']);
 
 export async function GET(request: Request) {
   // Vérification : soit Vercel Cron, soit API key manuelle
@@ -51,7 +60,9 @@ export async function GET(request: Request) {
     const alertsData = await alertsResponse.json();
 
     const severeAlerts: AlertData[] = (alertsData.alerts || []).filter(
-      (a: AlertData) => a.level === 'orange' || a.level === 'rouge'
+      (a: AlertData) =>
+        (a.level === 'orange' || a.level === 'rouge') &&
+        OFFICIAL_PUSH_SOURCES.has(a.source ?? '')
     );
 
     if (severeAlerts.length === 0) {

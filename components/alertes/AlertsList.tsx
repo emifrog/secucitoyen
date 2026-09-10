@@ -37,6 +37,9 @@ export default function AlertsList() {
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [degradedSources, setDegradedSources] = useState<HealthSource[]>([]);
+  // `degraded` est renvoyé par /api/alerts quand au moins une source amont
+  // (Météo-France, Vigicrues…) n'a pas répondu : la liste peut être incomplète.
+  const [degraded, setDegraded] = useState(false);
 
   useEffect(() => {
     const loadAlerts = async () => {
@@ -52,6 +55,7 @@ export default function AlertsList() {
 
         setAlerts(data.alerts || []);
         setSources(data.sources || []);
+        setDegraded(data.degraded === true);
         setLastUpdate(data.updatedAt || new Date().toISOString());
 
         if (data.error) {
@@ -189,20 +193,34 @@ export default function AlertsList() {
         </div>
       )}
 
-      {/* Sources dégradées */}
-      {degradedSources.length > 0 && (
+      {/* Sources dégradées (état des circuit breakers et/ou drapeau `degraded`
+          de /api/alerts). Aucune donnée n'est simulée : on prévient l'utilisateur
+          et on renvoie vers la source officielle. */}
+      {(degraded || degradedSources.length > 0) && (
         <div role="alert" className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-start gap-2">
           <span className="text-amber-500 mt-0.5">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </span>
           <div>
             <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-              {degradedSources.length === 1 ? 'Une source est' : `${degradedSources.length} sources sont`} temporairement indisponible{degradedSources.length > 1 ? 's' : ''}
+              {degradedSources.length > 1
+                ? `${degradedSources.length} sources sont temporairement indisponibles`
+                : 'Une source d\'alerte est temporairement indisponible'}
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-              {degradedSources.map((s) => s.source).join(', ')} — les données affichées peuvent être incomplètes
+              {degradedSources.length > 0 && `${degradedSources.map((s) => s.source).join(', ')} — `}
+              la liste peut être incomplète. En cas de doute, consultez{' '}
+              <a
+                href="https://vigilance.meteofrance.fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-medium"
+              >
+                vigilance.meteofrance.fr
+              </a>
+              .
             </p>
           </div>
         </div>
@@ -273,7 +291,7 @@ function AlertCard({ alert }: { alert: UnifiedAlert }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h4 className="font-semibold text-gray-800 dark:text-gray-100">{alert.title}</h4>
-              <span className={`px-2 py-0.5 ${levelConfig.bgColor} text-white text-xs rounded-full`}>
+              <span className={`px-2 py-0.5 ${levelConfig.bgColor} ${levelConfig.textOnBg} text-xs rounded-full`}>
                 {levelConfig.name.replace('Vigilance ', '')}
               </span>
               <span className={`px-2 py-0.5 ${categoryColors[alert.category] || 'bg-gray-500'} text-white text-xs rounded-full`}>

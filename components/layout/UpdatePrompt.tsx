@@ -14,9 +14,13 @@ export default function UpdatePrompt() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
+    // À la toute première installation, `clientsClaim()` prend le contrôle de la
+    // page ouverte et déclenche `controllerchange` sans qu'aucun asset n'ait
+    // changé : on ne recharge que si un contrôleur existait déjà (vraie MAJ).
+    const hadController = !!navigator.serviceWorker.controller;
     let refreshing = false;
     const onControllerChange = () => {
-      if (refreshing) return;
+      if (!hadController || refreshing) return;
       refreshing = true;
       window.location.reload();
     };
@@ -51,8 +55,10 @@ export default function UpdatePrompt() {
     // `controllerchange` recharge la page automatiquement.
   };
 
+  // bottom-36 : au-dessus du bouton d'urgence (FAB en bottom-20, ~56 px de
+  // haut) pour ne jamais le recouvrir ; sur desktop le FAB est masqué.
   return (
-    <div className="fixed inset-x-0 bottom-24 lg:bottom-6 z-[60] px-4 pointer-events-none">
+    <div className="fixed inset-x-0 bottom-36 lg:bottom-6 z-[60] px-4 pointer-events-none">
       <div className="max-w-md mx-auto pointer-events-auto bg-primary text-white rounded-xl shadow-2xl p-4 flex items-center gap-3">
         <span className="text-xl" aria-hidden="true">🔄</span>
         <p className="flex-1 text-sm font-medium">
