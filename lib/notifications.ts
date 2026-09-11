@@ -1,6 +1,6 @@
-'use client';
+import { STORAGE_KEYS } from './storage-keys';
 
-const STORAGE_KEY = 'secucitoyen_notifications';
+const STORAGE_KEY = STORAGE_KEYS.notifications;
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -157,30 +157,6 @@ export async function subscribeToPush(departmentCode?: string): Promise<boolean>
   } catch (error) {
     console.error('Erreur inscription push:', error);
     return false;
-  }
-}
-
-/**
- * Désinscrit des notifications push.
- */
-export async function unsubscribeFromPush(): Promise<void> {
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-
-    if (subscription) {
-      // Supprimer côté serveur
-      await fetch('/api/notifications/subscribe', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: subscription.endpoint }),
-      });
-
-      // Supprimer côté navigateur
-      await subscription.unsubscribe();
-    }
-  } catch (error) {
-    console.error('Erreur désinscription push:', error);
   }
 }
 

@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { TIMINGS } from '@/lib/ui-tokens';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-const DISMISS_KEY = 'secucitoyen_install_dismissed';
+const DISMISS_KEY = STORAGE_KEYS.installDismissed;
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -25,11 +27,16 @@ export default function InstallPrompt() {
       return;
     }
 
-    // Refusé récemment ? — masquer 7 jours.
-    const dismissed = localStorage.getItem(DISMISS_KEY);
+    // Refusé récemment ? — masquer quelques jours.
+    let dismissed: string | null = null;
+    try {
+      dismissed = localStorage.getItem(DISMISS_KEY);
+    } catch {
+      // Stockage indisponible : on affichera l'invite.
+    }
     if (dismissed) {
       const days = (Date.now() - new Date(dismissed).getTime()) / (1000 * 60 * 60 * 24);
-      if (days < 7) return;
+      if (days < TIMINGS.dismissDays) return;
     }
 
     // Détection iOS (iPhone/iPad, y compris iPadOS qui se déclare en MacIntel).
@@ -41,15 +48,16 @@ export default function InstallPrompt() {
     if (iOS) {
       // iOS ne déclenche pas `beforeinstallprompt` : on affiche les instructions.
       setIsIOS(true);
-      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      const timer = setTimeout(() => setShowPrompt(true), TIMINGS.promptDelayMs);
       return () => clearTimeout(timer);
     }
 
     // Android / Chromium : capter l'événement d'installation.
+    let promptTimer: ReturnType<typeof setTimeout> | undefined;
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setTimeout(() => setShowPrompt(true), 3000);
+      promptTimer = setTimeout(() => setShowPrompt(true), TIMINGS.promptDelayMs);
     };
     const handleAppInstalled = () => {
       setIsInstalled(true);
@@ -60,6 +68,7 @@ export default function InstallPrompt() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     window.addEventListener('appinstalled', handleAppInstalled);
     return () => {
+      if (promptTimer) clearTimeout(promptTimer);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
@@ -81,7 +90,11 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    localStorage.setItem(DISMISS_KEY, new Date().toISOString());
+    try {
+      localStorage.setItem(DISMISS_KEY, new Date().toISOString());
+    } catch {
+      // Stockage indisponible : l'invite reviendra à la prochaine visite.
+    }
   };
 
   if (isInstalled || !showPrompt) return null;
@@ -89,16 +102,20 @@ export default function InstallPrompt() {
   if (!isIOS && !deferredPrompt) return null;
 
   return (
-    <div className="fixed bottom-36 lg:bottom-6 left-4 right-4 max-w-[400px] mx-auto z-30">
+    <div
+      role="dialog"
+      aria-labelledby="install-prompt-title"
+      className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] lg:bottom-6 left-4 right-4 max-w-[400px] mx-auto z-30"
+    >
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 p-4">
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <span className="text-white font-bold text-lg">SC</span>
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-1">
+            <h2 id="install-prompt-title" className="font-semibold text-gray-800 dark:text-gray-100 mb-1">
               Installer SécuCitoyen
-            </h3>
+            </h2>
 
             {isIOS ? (
               <>
@@ -154,10 +171,10 @@ export default function InstallPrompt() {
           </div>
           <button
             onClick={handleDismiss}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+            className="p-2.5 -m-1.5 min-w-11 min-h-11 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
             aria-label="Fermer"
           >
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

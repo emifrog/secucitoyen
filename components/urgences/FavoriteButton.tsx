@@ -17,36 +17,42 @@ export default function FavoriteButton({ number, size = 'md', onToggle }: Favori
     setFavorite(isFavorite(number));
   }, [number]);
 
-  const handleToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // Fin de l'animation, timer annulé au démontage.
+  useEffect(() => {
+    if (!animate) return;
+    const timer = setTimeout(() => setAnimate(false), 300);
+    return () => clearTimeout(timer);
+  }, [animate]);
 
+  const handleToggle = () => {
     const newState = toggleFavorite(number);
     setFavorite(newState);
     setAnimate(true);
-    setTimeout(() => setAnimate(false), 300);
-
     onToggle?.(newState);
   };
 
-  const sizeClasses = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10';
+  // Zone tactile ≥ 44 px même pour la petite variante (icône plus petite).
+  const sizeClasses = size === 'sm' ? 'w-11 h-11' : 'w-11 h-11';
   const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
 
   return (
     <button
+      type="button"
       onClick={handleToggle}
+      aria-pressed={favorite}
       className={`${sizeClasses} flex items-center justify-center rounded-full transition-all ${
         favorite
-          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500'
+          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
           : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-600'
-      } ${animate ? 'scale-125' : ''}`}
-      aria-label={favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+      } ${animate ? 'scale-110' : ''}`}
+      aria-label={favorite ? `Retirer le ${number} des favoris` : `Ajouter le ${number} aux favoris`}
     >
       <svg
-        className={`${iconSize} transition-transform ${animate ? 'animate-pulse' : ''}`}
+        className={iconSize}
         fill={favorite ? 'currentColor' : 'none'}
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"

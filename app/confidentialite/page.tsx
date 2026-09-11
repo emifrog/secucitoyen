@@ -1,6 +1,12 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Politique de confidentialité',
+  description: "Quelles données SécuCitoyen utilise, où elles sont stockées et comment les supprimer.",
+  alternates: { canonical: '/confidentialite' },
+  robots: { index: false, follow: true },
+};
 
 export default function ConfidentialitePage() {
   return (
@@ -10,7 +16,7 @@ export default function ConfidentialitePage() {
           Politique de confidentialité
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Dernière mise à jour : Janvier 2025
+          Dernière mise à jour : septembre 2026
         </p>
       </section>
 
@@ -36,14 +42,11 @@ export default function ConfidentialitePage() {
           </h2>
           <p className="text-sm leading-relaxed">
             Le responsable du traitement des données est l&apos;éditeur de
-            l&apos;application SécuCitoyen.
+            l&apos;application SécuCitoyen, joignable pour toute question relative
+            aux données personnelles à l&apos;adresse{' '}
+            <a href="mailto:xav.robart@gmail.com" className="text-primary hover:underline">xav.robart@gmail.com</a>{' '}
+            ou via la <Link href="/contact" className="text-primary hover:underline">page de contact</Link>.
           </p>
-          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <p className="text-sm text-amber-800 dark:text-amber-300">
-              <strong>Note :</strong> Complétez avec vos coordonnées de contact
-              (email DPO ou contact RGPD).
-            </p>
-          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
@@ -63,8 +66,8 @@ export default function ConfidentialitePage() {
                 <li>Département sélectionné (pour les alertes)</li>
                 <li>Numéros d&apos;urgence favoris</li>
                 <li>Préférence de thème (clair/sombre)</li>
-                <li>Préférence de langue (FR/EN/IT)</li>
                 <li>Progression dans les check-lists de prévention</li>
+                <li>Choix de masquer les invites d&apos;installation et de notifications</li>
               </ul>
               <p className="text-xs text-green-600 dark:text-green-500 mt-2">
                 Ces données sont stockées dans le localStorage de votre navigateur
@@ -80,9 +83,26 @@ export default function ConfidentialitePage() {
                 <li>Position GPS (latitude, longitude)</li>
               </ul>
               <p className="text-xs text-blue-600 dark:text-blue-500 mt-2">
-                Utilisée uniquement pour : déterminer votre département, rechercher
+                Utilisée uniquement pour : déterminer votre département (géocodage
+                inverse via geo.api.gouv.fr, coordonnées arrondies à ~100 m), rechercher
                 les DAE à proximité, partager votre position en cas d&apos;urgence.
                 Votre position n&apos;est <strong>jamais stockée</strong> sur nos serveurs.
+              </p>
+            </div>
+
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">
+                🔔 Notifications push (optionnelles)
+              </h3>
+              <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1 ml-4 list-disc">
+                <li>Identifiant technique d&apos;abonnement fourni par votre navigateur (endpoint et clés de chiffrement)</li>
+                <li>Code du département choisi, pour cibler les alertes</li>
+              </ul>
+              <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
+                Ce sont les seules données conservées sur nos serveurs (base Supabase, Union
+                européenne). Elles ne contiennent ni nom, ni e-mail, ni position. Elles sont
+                supprimées automatiquement quand l&apos;abonnement expire ou que vous désactivez
+                les notifications dans votre navigateur.
               </p>
             </div>
 
@@ -123,7 +143,11 @@ export default function ConfidentialitePage() {
             </li>
             <li>
               <strong>Personnaliser l&apos;expérience</strong> : mémoriser vos
-              préférences (thème, langue, favoris)
+              préférences (thème, favoris)
+            </li>
+            <li>
+              <strong>Vous alerter</strong> : envoyer une notification push en cas de
+              vigilance orange ou rouge dans votre département, si vous l&apos;avez activée
             </li>
           </ul>
         </div>
@@ -157,8 +181,13 @@ export default function ConfidentialitePage() {
             <li>Météo-France / Opendatasoft (vigilances)</li>
             <li>Vigicrues (crues)</li>
             <li>Open-Meteo (météo, qualité de l&apos;air)</li>
-            <li>OpenDataSoft (défibrillateurs)</li>
+            <li>OpenDataSoft (défibrillateurs, données OpenStreetMap)</li>
+            <li>geo.api.gouv.fr (département à partir de la position)</li>
           </ul>
+          <p className="text-sm leading-relaxed mt-2">
+            Ces requêtes sont émises par nos serveurs, pas par votre navigateur : les
+            services tiers ne voient pas votre adresse IP.
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
@@ -168,8 +197,10 @@ export default function ConfidentialitePage() {
           <p className="text-sm leading-relaxed">
             Les données stockées localement (localStorage) persistent jusqu&apos;à
             ce que vous les supprimiez manuellement ou effaciez les données de
-            navigation de votre navigateur. Aucune donnée n&apos;est conservée
-            sur nos serveurs.
+            navigation de votre navigateur. L&apos;abonnement aux notifications push
+            est conservé tant qu&apos;il est actif et supprimé dès qu&apos;il expire ou
+            que vous retirez l&apos;autorisation ; l&apos;historique des alertes envoyées
+            est purgé après 7 jours.
           </p>
         </div>
 

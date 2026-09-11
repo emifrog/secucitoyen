@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # Dépendances npm : regroupées par type pour limiter le bruit (une PR
+  # « mineures/patchs » par semaine, les majeures séparément).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Les majeures de Next/React se planifient à la main (migration guidée).
+      - dependency-name: next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+    labels:
+      - dependencies
+
+  # Actions GitHub épinglées par SHA : Dependabot suit les nouvelles versions.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Paris
+    labels:
+      - dependencies

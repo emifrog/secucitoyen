@@ -16,9 +16,12 @@
 /.next/
 /out/
 
-# PWA — artefacts de build générés par next-pwa (régénérés à chaque build)
+# PWA — service worker généré par Serwist à chaque build (source : app/sw.ts)
 /public/sw.js
 /public/sw.js.map
+/public/swe-worker-*.js
+/public/swe-worker-*.js.map
+# Anciens artefacts next-pwa (au cas où un build antérieur les aurait laissés)
 /public/workbox-*.js
 /public/workbox-*.js.map
 /public/worker-*.js

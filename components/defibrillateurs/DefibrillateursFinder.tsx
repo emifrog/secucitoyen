@@ -1,0 +1,320 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Card } from '@/components/ui';
+import { getCurrentPosition, isGeolocationSupported } from '@/lib/geolocation';
+import type { Defibrillateur } from '@/lib/sources/defibrillateurs';
+
+const RADII = [500, 1000, 2000, 5000] as const;
+
+export default function DefibrillateursFinder() {
+  const [defibrillateurs, setDefibrillateurs] = useState<Defibrillateur[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [radius, setRadius] = useState<number>(2000);
+  const [source, setSource] = useState<string>('');
+  // Service DAE indisponible (503) : état bloquant, on ne montre jamais de
+  // données de substitution — la seule consigne sûre est d'appeler le 15/112.
+  const [unavailable, setUnavailable] = useState(false);
+  // Évalué après montage (évite une divergence serveur/client).
+  const [geoSupported, setGeoSupported] = useState(true);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setGeoSupported(isGeolocationSupported());
+    return () => abortRef.current?.abort();
+  }, []);
+
+  const loadDefibrillateurs = useCallback(async (lat: number, lon: number, radiusMeters: number) => {
+    // Annule la requête précédente (changement rapide de rayon) : pas de course.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    setError(null);
+    setUnavailable(false);
+
+    try {
+      const response = await fetch(
+        `/api/defibrillateurs?lat=${lat}&lon=${lon}&radius=${radiusMeters}&limit=20`,
+        { signal: controller.signal }
+      );
+      const data = await response.json().catch(() => ({}));
+      if (controller.signal.aborted) return;
+
+      if (!response.ok || data.error) {
+        setDefibrillateurs([]);
+        setSource('');
+        setUnavailable(response.status === 503 || data.unavailable === true);
+        setError(data.error || 'Erreur lors de la recherche des défibrillateurs');
+      } else {
+        setDefibrillateurs(data.defibrillateurs || []);
+        setSource(data.source || '');
+      }
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      console.error('Erreur DAE:', err);
+      setDefibrillateurs([]);
+      setSource('');
+      setUnavailable(true);
+      setError('Erreur lors de la recherche des défibrillateurs');
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }, []);
+
+  // Une seule source de vérité pour déclencher la recherche : la position et
+  // le rayon (l'ancien code lançait deux requêtes identiques au premier
+  // geolocate).
+  useEffect(() => {
+    if (userLocation) loadDefibrillateurs(userLocation.lat, userLocation.lon, radius);
+  }, [userLocation, radius, loadDefibrillateurs]);
+
+  const handleGeolocate = async () => {
+    if (!geoSupported) {
+      setError('Géolocalisation non supportée sur cet appareil');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const position = await getCurrentPosition();
+      setUserLocation({ lat: position.latitude, lon: position.longitude });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de géolocalisation');
+      setLoading(false);
+    }
+  };
+
+  const openNavigation = (dae: Defibrillateur) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${dae.latitude},${dae.longitude}&travelmode=walking`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const formatDistance = (meters: number | undefined): string => {
+    if (!meters) return '';
+    if (meters < 1000) return `${meters} m`;
+    return `${(meters / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} km`;
+  };
+
+  return (
+    <>
+      {/* Bouton géolocalisation */}
+      {!userLocation && (
+        <button
+          onClick={handleGeolocate}
+          disabled={loading || !geoSupported}
+          className="w-full flex items-center justify-center gap-2 px-4 py-4 min-h-11 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-white rounded-xl font-medium transition-colors"
+        >
+          {loading ? (
+            <>
+              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Localisation en cours...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Trouver les DAE près de moi
+            </>
+          )}
+        </button>
+      )}
+
+      {/* Contrôles après géolocalisation */}
+      {userLocation && (
+        <section className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              </svg>
+              <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                Position actuelle
+              </span>
+            </div>
+            <button
+              onClick={handleGeolocate}
+              disabled={loading}
+              className="text-sm min-h-11 px-2 text-blue-700 dark:text-blue-300 hover:underline"
+            >
+              Actualiser
+            </button>
+          </div>
+
+          {/* Sélecteur de rayon */}
+          <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Rayon de recherche">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Rayon :</span>
+            <div className="flex gap-2">
+              {RADII.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRadius(r)}
+                  aria-pressed={radius === r}
+                  className={`px-3 py-1 min-h-11 rounded-lg text-sm font-medium transition-colors ${
+                    radius === r
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-slate-600'
+                  }`}
+                >
+                  {r < 1000 ? `${r} m` : `${r / 1000} km`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Service indisponible : consigne bloquante, pas de liste */}
+      {unavailable && !loading && (
+        <div
+          role="alert"
+          className="p-4 bg-red-600 text-white rounded-xl space-y-3 border-2 border-red-700"
+        >
+          <p className="font-bold text-lg">Service de localisation des DAE indisponible</p>
+          <p className="text-sm text-white/90">
+            Nous ne pouvons pas vous indiquer de défibrillateur pour le moment.
+            En cas d&apos;arrêt cardiaque, appelez le{' '}
+            <a href="tel:15" className="font-bold underline">15</a> ou le{' '}
+            <a href="tel:112" className="font-bold underline">112</a> : le régulateur
+            vous indiquera le DAE le plus proche et vous guidera pour le massage cardiaque.
+          </p>
+          <div className="flex gap-2">
+            <a
+              href="tel:15"
+              className="flex-1 text-center bg-white text-red-700 font-bold py-3 min-h-11 rounded-lg"
+            >
+              Appeler le 15
+            </a>
+            {userLocation && (
+              <button
+                onClick={() => loadDefibrillateurs(userLocation.lat, userLocation.lon, radius)}
+                className="flex-1 bg-black/20 hover:bg-black/30 font-medium py-3 min-h-11 rounded-lg transition-colors"
+              >
+                Réessayer
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Autre erreur (géolocalisation, paramètres…) */}
+      {error && !unavailable && (
+        <div role="alert" className="p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
+          {error}
+        </div>
+      )}
+
+      {/* Liste des DAE */}
+      {userLocation && !loading && !error && (
+        <section className="space-y-3" aria-live="polite">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-gray-800 dark:text-gray-100">
+              {defibrillateurs.length} DAE trouvé{defibrillateurs.length > 1 ? 's' : ''}
+            </h2>
+            {source && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 text-right">{source}</span>
+            )}
+          </div>
+          {defibrillateurs.length > 0 && (
+            <p className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2">
+              Données contributives (OpenStreetMap) : un DAE peut avoir été déplacé ou être
+              hors service. Le régulateur du 15 / 112 connaît les DAE référencés officiellement.
+            </p>
+          )}
+
+          {defibrillateurs.length === 0 ? (
+            <Card className="text-center py-8">
+              <div className="text-4xl mb-2" aria-hidden="true">😕</div>
+              <p className="text-gray-600 dark:text-gray-300">
+                Aucun défibrillateur trouvé dans ce rayon
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Essayez d&apos;augmenter le rayon de recherche
+              </p>
+            </Card>
+          ) : (
+            <ul className="space-y-3">
+              {defibrillateurs.map((dae, index) => (
+                <li key={dae.id}>
+                  <Card className={index === 0 ? 'border-2 border-green-500 dark:border-green-400' : ''}>
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
+                          index === 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-slate-700'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {index === 0 ? '🫀' : '💚'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="font-semibold text-gray-800 dark:text-gray-100">{dae.nom}</h3>
+                          {index === 0 && (
+                            <span className="px-2 py-0.5 bg-green-700 text-white text-xs rounded-full whitespace-nowrap">
+                              Le plus proche
+                            </span>
+                          )}
+                        </div>
+                        {dae.adresse && (
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{dae.adresse}</p>
+                        )}
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {[dae.codePostal, dae.commune].filter(Boolean).join(' ')}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                            {formatDistance(dae.distance)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {dae.disponibilite}
+                          </span>
+                          {dae.etatFonctionnement && dae.etatFonctionnement !== 'Inconnu' && (
+                            <span>{dae.etatFonctionnement}</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{dae.accessibilite}</p>
+                      </div>
+                      <button
+                        onClick={() => openNavigation(dae)}
+                        className="flex-shrink-0 p-3 min-w-11 min-h-11 bg-primary hover:bg-primary/90 text-white rounded-xl transition-colors"
+                        aria-label={`Itinéraire à pied vers ${dae.nom} (Google Maps, nouvelle fenêtre)`}
+                        title="Itinéraire"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </Card>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {/* Loading skeleton */}
+      {loading && userLocation && (
+        <section className="space-y-3" aria-busy="true" aria-label="Recherche en cours">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse bg-gray-100 dark:bg-slate-700 h-24 rounded-xl" />
+          ))}
+        </section>
+      )}
+    </>
+  );
+}

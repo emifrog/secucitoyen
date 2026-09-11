@@ -35,6 +35,10 @@ export default function GlobalError({
         <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
           En cas d&apos;urgence vitale, composez le 112, le 15 ou le 18.
         </p>
+        {/* Lien natif volontaire : après un plantage du layout racine, le
+            routeur client n'est plus fiable — un rechargement complet est
+            plus sûr qu'une navigation <Link>. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/"
           style={{

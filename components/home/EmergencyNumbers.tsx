@@ -1,36 +1,34 @@
-'use client';
-
 import Link from 'next/link';
+import { getNumberByNumber } from '@/lib/numeros-urgence';
 
-const emergencyNumbers = [
-  { number: '15', name: 'SAMU', color: 'bg-red-500' },
-  { number: '17', name: 'Police', color: 'bg-blue-600' },
-  { number: '18', name: 'Pompiers', color: 'bg-orange-500' },
-  { number: '112', name: 'Urgences', color: 'bg-green-600' },
-];
+// Composant serveur : lit la source unique des numéros (plus de copie locale
+// avec des couleurs divergentes).
+const QUICK_NUMBERS = ['15', '17', '18', '112'] as const;
 
 export default function EmergencyNumbers() {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Numéros d&apos;urgence</h3>
-        <Link href="/urgences" className="text-sm text-accent font-medium">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Numéros d&apos;urgence</h2>
+        <Link href="/urgences" className="text-sm text-orange-700 dark:text-orange-400 font-medium py-2">
           Voir tout →
         </Link>
       </div>
-      <div className="flex gap-2">
-        {emergencyNumbers.map((item) => (
-          <Link
-            key={item.number}
-            href={`tel:${item.number}`}
-            className="flex-1"
-          >
-            <div className={`${item.color} text-white rounded-xl p-3 text-center transition-all hover:scale-105 active:scale-95 shadow-sm`}>
-              <div className="text-xl font-bold">{item.number}</div>
-              <div className="text-xs opacity-90">{item.name}</div>
-            </div>
-          </Link>
-        ))}
+      {/* 2 colonnes sous 640 px (« Urgences européennes » ne tient pas dans un
+          quart de 320 px), 4 au-delà — même grille que l'accès rapide. */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {QUICK_NUMBERS.map((num) => {
+          const info = getNumberByNumber(num);
+          if (!info) return null;
+          return (
+            <a key={num} href={`tel:${num}`} className="min-w-0" aria-label={`Appeler le ${num} (${info.name})`}>
+              <div className={`${info.color} text-white rounded-xl p-3 min-h-11 h-full text-center transition-all hover:scale-105 active:scale-95 shadow-sm`}>
+                <div className="text-xl font-bold">{num}</div>
+                <div className="text-xs break-words">{info.name}</div>
+              </div>
+            </a>
+          );
+        })}
       </div>
     </section>
   );

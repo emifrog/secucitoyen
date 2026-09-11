@@ -58,8 +58,8 @@ export default function UpdatePrompt() {
   // bottom-36 : au-dessus du bouton d'urgence (FAB en bottom-20, ~56 px de
   // haut) pour ne jamais le recouvrir ; sur desktop le FAB est masqué.
   return (
-    <div className="fixed inset-x-0 bottom-36 lg:bottom-6 z-[60] px-4 pointer-events-none">
-      <div className="max-w-md mx-auto pointer-events-auto bg-primary text-white rounded-xl shadow-2xl p-4 flex items-center gap-3">
+    <div className="fixed inset-x-0 bottom-[calc(9rem+env(safe-area-inset-bottom))] lg:bottom-6 z-[60] px-4 pointer-events-none">
+      <div role="status" className="max-w-md mx-auto pointer-events-auto bg-primary text-white rounded-xl shadow-2xl p-4 flex items-center gap-3">
         <span className="text-xl" aria-hidden="true">🔄</span>
         <p className="flex-1 text-sm font-medium">
           Une nouvelle version est disponible.
@@ -73,9 +73,9 @@ export default function UpdatePrompt() {
         <button
           onClick={() => setWaiting(null)}
           aria-label="Ignorer la mise à jour"
-          className="p-1 hover:bg-white/10 rounded-full transition-colors"
+          className="p-2.5 -m-1.5 min-w-11 min-h-11 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

@@ -27,27 +27,33 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-}
-
-/* Transitions fluides pour le changement de thème */
-@layer base {
-  * {
-    @apply transition-colors duration-200;
+  /* Délais d'animation pour les listes qui apparaissent en cascade. */
+  .animation-delay-100 {
+    animation-delay: 0.05s;
+  }
+  .animation-delay-200 {
+    animation-delay: 0.1s;
   }
 }
 
-/* Animation slide-up pour les popups */
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Transition de couleurs UNIQUEMENT pendant le changement de thème : la classe
+   est posée ~250 ms par lib/theme.ts. L'ancienne règle `* { transition-colors }`
+   s'appliquait à chaque élément en permanence (recalculs coûteux). */
+html.theme-transition,
+html.theme-transition * {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+/* Respect de la préférence « réduire les animations » (WCAG 2.3.3) : les
+   illustrations des gestes, le bouton d'urgence et les apparitions deviennent
+   statiques ; le contenu reste identique. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,0 +1,207 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { alertLevels, alertTypes } from '@/lib/alertes';
+import { getSavedDepartment } from '@/lib/geolocation';
+import type { UnifiedAlert } from '@/lib/types/api-responses';
+import { Card } from '@/components/ui';
+
+export default function AlertDetail({ id }: { id: string }) {
+  const [alert, setAlert] = useState<UnifiedAlert | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // L'alerte est cherchée dans les données réelles de /api/alerts : d'abord
+    // pour le département sauvegardé (réponse plus courte, en cache CDN),
+    // puis en vue nationale (lien reçu par notification pour un autre
+    // département, ou aucun département choisi).
+    const controller = new AbortController();
+
+    const findIn = async (query: string): Promise<UnifiedAlert | null> => {
+      const response = await fetch(`/api/alerts${query}`, { signal: controller.signal });
+      if (!response.ok) return null;
+      const data = await response.json();
+      return (data.alerts as UnifiedAlert[] | undefined)?.find((a) => a.id === id) ?? null;
+    };
+
+    const loadAlert = async () => {
+      setLoading(true);
+      try {
+        const dept = getSavedDepartment();
+        let found = await findIn(dept ? `?dept=${encodeURIComponent(dept)}` : '');
+        if (!found && dept) found = await findIn('');
+        if (!controller.signal.aborted) setAlert(found);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Erreur chargement alerte:', error);
+          setAlert(null);
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+
+    loadAlert();
+    return () => controller.abort();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-4" aria-busy="true" aria-label="Chargement de l'alerte">
+        <div className="animate-pulse bg-gray-100 dark:bg-slate-700 h-8 w-48 rounded" />
+        <div className="animate-pulse bg-gray-100 dark:bg-slate-700 h-32 rounded-xl" />
+        <div className="animate-pulse bg-gray-100 dark:bg-slate-700 h-48 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (!alert) {
+    return (
+      <div className="p-4 text-center py-12">
+        <div className="text-4xl mb-4" aria-hidden="true">🔍</div>
+        <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Alerte non trouvée</h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">Cette alerte n&apos;existe pas ou a été levée.</p>
+        <Link
+          href="/alertes"
+          className="inline-flex items-center gap-2 min-h-11 text-primary dark:text-blue-400 font-medium"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Retour aux alertes
+        </Link>
+      </div>
+    );
+  }
+
+  const levelConfig = alertLevels[alert.level];
+  const typeInfo = alertTypes.find((t) => t.type === alert.type);
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+
+  return (
+    <div className="pb-6">
+      {/* Sous-en-tête collant, sous le header global (~64 px). */}
+      <div className="sticky top-16 z-10 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/alertes"
+            className="p-2.5 -ml-2.5 min-w-11 min-h-11 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            aria-label="Retour aux alertes"
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-2xl" aria-hidden="true">{alert.icon || typeInfo?.icon || '⚠️'}</span>
+            <h1 className="font-bold text-gray-800 dark:text-gray-100 truncate">{typeInfo?.name || alert.title}</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 space-y-5 mt-4">
+        {/* Header alerte */}
+        <section className={`${levelConfig.bgColor} ${levelConfig.textOnBg} rounded-2xl p-5`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-3xl" aria-hidden="true">{alert.icon || typeInfo?.icon || '⚠️'}</span>
+            <span className="px-3 py-1 bg-black/10 rounded-full text-sm font-medium">{levelConfig.name}</span>
+          </div>
+          <h2 className="text-xl font-bold mb-2">{alert.title}</h2>
+          {alert.department && <p className="font-medium">{alert.department}</p>}
+          <p className="text-sm mt-2">{alert.description}</p>
+          <div className="flex items-center gap-2 mt-4 text-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Mis à jour : {formatDate(alert.updatedAt)}</span>
+          </div>
+        </section>
+
+        {/* Conseils */}
+        {alert.advice && alert.advice.length > 0 && (
+          <section className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
+            <h2 className="font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+              <span aria-hidden="true">📋</span> Conseils de comportement
+            </h2>
+            <ol className="space-y-3">
+              {alert.advice.map((advice, index) => (
+                <li key={advice} className="flex items-start gap-3">
+                  <span className={`flex-shrink-0 w-6 h-6 ${levelConfig.bgColor} ${levelConfig.textOnBg} rounded-full flex items-center justify-center text-xs font-bold`} aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">{advice}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {/* Infos complémentaires */}
+        <section className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-4 space-y-3">
+          <h2 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <span aria-hidden="true">ℹ️</span> Informations
+          </h2>
+          <dl className="grid grid-cols-2 gap-3">
+            <Card className="bg-white dark:bg-slate-800">
+              <dt className="text-xs text-gray-500 dark:text-gray-400 mb-1">Source</dt>
+              <dd className="font-medium text-gray-800 dark:text-gray-100">{alert.source}</dd>
+            </Card>
+            <Card className="bg-white dark:bg-slate-800">
+              <dt className="text-xs text-gray-500 dark:text-gray-400 mb-1">Département</dt>
+              <dd className="font-medium text-gray-800 dark:text-gray-100">{alert.department || 'National'}</dd>
+            </Card>
+            {alert.endDate && (
+              <Card className="bg-white dark:bg-slate-800 col-span-2">
+                <dt className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fin prévue</dt>
+                <dd className="font-medium text-gray-800 dark:text-gray-100">{formatDate(alert.endDate)}</dd>
+              </Card>
+            )}
+          </dl>
+        </section>
+
+        {/* En cas d'urgence */}
+        <section className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+          <h2 className="font-bold text-red-800 dark:text-red-300 mb-3 flex items-center gap-2">
+            <span aria-hidden="true">🚨</span> En cas d&apos;urgence
+          </h2>
+          <div className="space-y-2">
+            <a href="tel:112" className="flex items-center gap-3 p-3 min-h-11 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <div>
+                <div className="font-bold">Appeler le 112</div>
+                <div className="text-sm text-white">Urgences</div>
+              </div>
+            </a>
+            <a href="tel:18" className="flex items-center gap-3 p-3 min-h-11 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+              <span className="text-xl" aria-hidden="true">🚒</span>
+              <div>
+                <div className="font-bold">Appeler le 18</div>
+                <div className="text-sm text-red-700 dark:text-red-400">Pompiers</div>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        {/* Lien Météo-France */}
+        <section>
+          <a
+            href="https://vigilance.meteofrance.fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 p-4 min-h-11 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+          >
+            <span>Voir sur Météo-France</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            <span className="sr-only">(nouvelle fenêtre)</span>
+          </a>
+        </section>
+      </div>
+    </div>
+  );
+}

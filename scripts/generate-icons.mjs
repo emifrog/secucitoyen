@@ -91,6 +91,12 @@ async function main() {
   // apple-touch : full-bleed (iOS applique son propre masque arrondi).
   await svgToPng(fullBleed(1.9), { w: 180, h: 180 }, join(iconsDir, 'apple-touch-icon.png'));
   await svgToPng(ogSvg, { w: 1200, h: 630 }, join(root, 'public', 'og-image.png'));
+
+  // Raccourcis du manifeste : Android attend du PNG (les SVG sont ignorés).
+  for (const name of ['shortcut-15', 'shortcut-17', 'shortcut-18', 'shortcut-dae']) {
+    const svg = await readFile(join(iconsDir, `${name}.svg`));
+    await svgToPng(svg, { w: 96, h: 96 }, join(iconsDir, `${name}.png`));
+  }
 }
 
 main().catch((err) => {

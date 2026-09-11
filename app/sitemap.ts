@@ -1,74 +1,52 @@
 import { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site';
+import { fichesSecours } from '@/lib/fiches-secours';
+import { emergencyNumbers } from '@/lib/numeros-urgence';
+import { saisons } from '@/lib/conseils-saisonniers';
+import { checklistsPrevention } from '@/lib/checklists-prevention';
 
-const BASE_URL = 'https://secucitoyen.vercel.app';
-
-const fichesIds = [
-  'arret-cardiaque', 'etouffement', 'hemorragie', 'brulures', 'pls',
-  'avc', 'noyade', 'electrocution', 'morsures', 'fractures',
-  'malaise-cardiaque', 'hypothermie', 'convulsions', 'intoxication',
-];
-
-const numerosIds = ['15', '17', '18', '112', '114', '115', '119', '3114', '116-000', '3919', '0-800-05-95-95', '196'];
-
-const conseilsIds = [
-  'verglas', 'monoxyde', 'hypothermie-hiver', 'coupures-courant',
-  'allergies', 'orages-printemps', 'tiques', 'jardinage',
-  'canicule', 'noyades', 'feux-foret', 'piqures-ete', 'uv',
-  'chasse', 'champignons', 'brouillard', 'tempetes', 'grippe',
-];
-
-const checklistsIds = ['domicile', 'kit-urgence', 'routiere', 'cyber', 'risques-naturels'];
+// Les identifiants sont dérivés des modules de données (plus de listes
+// recopiées à la main qui dérivaient à chaque ajout de fiche).
+//
+// `lastModified` : date du dernier changement de contenu éditorial (à mettre à
+// jour quand les données changent), plutôt que « maintenant » à chaque requête
+// qui n'apporte aucun signal aux moteurs.
+const CONTENT_UPDATED = new Date('2026-09-10');
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+  const page = (
+    path: string,
+    changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'],
+    priority: number
+  ): MetadataRoute.Sitemap[number] => ({
+    url: `${SITE_URL}${path}`,
+    lastModified: CONTENT_UPDATED,
+    changeFrequency,
+    priority,
+  });
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: now, changeFrequency: 'weekly', priority: 1.0 },
-    { url: `${BASE_URL}/urgences`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${BASE_URL}/secours`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${BASE_URL}/alertes`, lastModified: now, changeFrequency: 'hourly', priority: 0.8 },
-    { url: `${BASE_URL}/prevention`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/defibrillateurs`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/conseils-saison`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${BASE_URL}/mentions-legales`, lastModified: now, changeFrequency: 'yearly', priority: 0.1 },
-    { url: `${BASE_URL}/confidentialite`, lastModified: now, changeFrequency: 'yearly', priority: 0.1 },
-    { url: `${BASE_URL}/cgu`, lastModified: now, changeFrequency: 'yearly', priority: 0.1 },
+    page('', 'weekly', 1.0),
+    page('/urgences', 'monthly', 0.9),
+    page('/secours', 'monthly', 0.9),
+    page('/alertes', 'hourly', 0.8),
+    page('/prevention', 'monthly', 0.7),
+    page('/defibrillateurs', 'monthly', 0.7),
+    page('/conseils-saison', 'monthly', 0.6),
+    page('/contact', 'yearly', 0.3),
+    page('/mentions-legales', 'yearly', 0.1),
+    page('/confidentialite', 'yearly', 0.1),
+    page('/cgu', 'yearly', 0.1),
   ];
 
-  const fichesPages: MetadataRoute.Sitemap = fichesIds.map((id) => ({
-    url: `${BASE_URL}/secours/${id}`,
-    lastModified: now,
-    changeFrequency: 'monthly',
-    priority: 0.8,
-  }));
+  const fichesPages = fichesSecours.map((f) => page(`/secours/${f.id}`, 'monthly', 0.8));
+  const numerosPages = emergencyNumbers.map((n) =>
+    page(`/urgences/${n.number.replace(/\s/g, '-')}`, 'monthly', 0.7)
+  );
+  const conseilsPages = saisons.flatMap((s) =>
+    s.conseils.map((c) => page(`/conseils-saison/${c.id}`, 'monthly', 0.5))
+  );
+  const checklistsPages = checklistsPrevention.map((c) => page(`/prevention/${c.id}`, 'monthly', 0.5));
 
-  const numerosPages: MetadataRoute.Sitemap = numerosIds.map((id) => ({
-    url: `${BASE_URL}/urgences/${id}`,
-    lastModified: now,
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
-
-  const conseilsPages: MetadataRoute.Sitemap = conseilsIds.map((id) => ({
-    url: `${BASE_URL}/conseils-saison/${id}`,
-    lastModified: now,
-    changeFrequency: 'monthly',
-    priority: 0.5,
-  }));
-
-  const checklistsPages: MetadataRoute.Sitemap = checklistsIds.map((id) => ({
-    url: `${BASE_URL}/prevention/${id}`,
-    lastModified: now,
-    changeFrequency: 'monthly',
-    priority: 0.5,
-  }));
-
-  return [
-    ...staticPages,
-    ...fichesPages,
-    ...numerosPages,
-    ...conseilsPages,
-    ...checklistsPages,
-  ];
+  return [...staticPages, ...fichesPages, ...numerosPages, ...conseilsPages, ...checklistsPages];
 }

@@ -11,7 +11,7 @@ Application Progressive Web App (PWA) de sécurité citoyenne pour la France. Pr
 - Partage de position GPS par SMS
 
 ### Secours
-- **15 fiches pratiques** des gestes qui sauvent
+- **14 fiches pratiques** des gestes qui sauvent
 - Arrêt cardiaque, étouffement, hémorragie, brûlures, PLS
 - AVC, noyade, électrocution, morsures, fractures
 - Malaise cardiaque, hypothermie, convulsions, intoxication
@@ -57,9 +57,9 @@ Application Progressive Web App (PWA) de sécurité citoyenne pour la France. Pr
 
 ## Technologies
 
-- **Framework** : Next.js 14 (App Router)
+- **Framework** : Next.js 15 (App Router), React 19
 - **Styling** : Tailwind CSS
-- **PWA** : next-pwa
+- **PWA** : Serwist (service worker `app/sw.ts` : précache, fiches et numéros disponibles hors-ligne dès l'installation, push)
 - **TypeScript** : Typage strict
 - **API** : Route handlers Next.js
 - **Base de données** : Supabase (abonnements push uniquement)
@@ -91,49 +91,55 @@ npm start
 secucitoyen/
 ├── app/
 │   ├── api/
-│   │   ├── alerts/           # API unifiée (toutes alertes)
-│   │   ├── vigilance/        # API Météo-France
-│   │   ├── air-quality/      # API qualité de l'air
-│   │   ├── vigicrues/        # API vigilance crues
-│   │   ├── meteo-forets/     # API risque incendie forêt (IFM)
-│   │   ├── fire-risk/        # API risque incendie (FWI)
-│   │   ├── defibrillateurs/  # API DAE à proximité
-│   │   └── widget/           # API widget PWA
-│   ├── alertes/              # Page alertes
-│   ├── conseils-saison/      # Page conseils saisonniers
-│   ├── defibrillateurs/      # Page recherche DAE
-│   ├── prevention/           # Page prévention
-│   ├── secours/              # Page gestes de secours
-│   ├── urgences/             # Page numéros d'urgence
+│   │   ├── alerts/           # API unifiée (agrégateur, toutes alertes)
+│   │   ├── vigilance/        # Vigilance Météo-France
+│   │   ├── air-quality/      # Qualité de l'air (indice européen)
+│   │   ├── vigicrues/        # Vigilance crues
+│   │   ├── meteo-forets/     # Estimation risque incendie (non officielle)
+│   │   ├── fire-risk/        # Estimation ponctuelle (lat/lon)
+│   │   ├── defibrillateurs/  # DAE à proximité (OpenStreetMap)
+│   │   ├── geocode/          # Coordonnées → département (geo.api.gouv.fr)
+│   │   ├── notifications/    # Abonnement + envoi Web Push
+│   │   ├── cron/check-alerts # Cron de notifications (GitHub Actions)
+│   │   └── health/           # État des circuit breakers
+│   ├── sw.ts                 # Service worker (Serwist) : précache, offline, push
+│   ├── alertes/              # Page alertes (+ détail)
+│   ├── conseils-saison/      # Conseils saisonniers
+│   ├── defibrillateurs/      # Recherche DAE
+│   ├── prevention/           # Check-lists de prévention
+│   ├── secours/              # Fiches de premiers secours
+│   ├── urgences/             # Numéros d'urgence
+│   ├── offline/, not-found.tsx, error.tsx
 │   ├── layout.tsx            # Layout principal
 │   └── page.tsx              # Page d'accueil
 ├── components/
-│   ├── alertes/              # Composants alertes
-│   ├── favorites/            # Système de favoris
-│   ├── home/                 # Composants accueil (SeasonalTips, etc.)
-│   ├── layout/               # Header, Nav, FAB, Search, Install
-│   ├── prevention/           # Composants prévention
-│   ├── providers/            # Context providers (Theme)
-│   ├── secours/              # Composants secours
-│   ├── ui/                   # Composants UI (Card, Button)
-│   └── urgences/             # Composants urgences
+│   ├── alertes/              # Liste, détail, sélecteur de département, push
+│   ├── contact/, defibrillateurs/, offline/
+│   ├── home/                 # Bannière d'alerte, numéros rapides, conseils
+│   ├── layout/               # Header, navigations, FAB, invites PWA
+│   ├── prevention/, secours/, urgences/
+│   ├── providers/            # ThemeProvider
+│   └── ui/                   # Card
 ├── lib/
-│   ├── api-auth.ts           # Comparaison timing-safe des secrets (routes)
+│   ├── sources/              # Une fonction pure par source + agrégateur
+│   ├── departements.ts       # Source unique des 101 départements
+│   ├── geolocation.ts        # Position + résolution du département
+│   ├── offline-urls.ts       # Pages préchauffées hors-ligne (fiches, numéros)
+│   ├── nav.ts, ui-tokens.ts, storage-keys.ts, site.ts
+│   ├── api-auth.ts           # Comparaison timing-safe des secrets
 │   ├── api-utils.ts          # Retry + circuit breaker (APIs tierces)
 │   ├── validation.ts         # Validation des entrées (anti-SSRF/injection)
-│   ├── supabase.ts           # Clients Supabase (public + service_role)
-│   ├── conseils-saisonniers.ts  # Données conseils par saison
-│   ├── fiches-secours.ts     # 15 fiches premiers secours
-│   ├── checklists-prevention.ts # Check-lists prévention
-│   ├── geolocation.ts        # Géolocalisation & départements
+│   ├── rate-limit.ts         # Limiteur de débit par IP
+│   ├── supabase.ts           # Client service_role (serveur uniquement)
+│   ├── fiches-secours.ts     # 14 fiches premiers secours
+│   ├── numeros-urgence.ts    # Numéros d'urgence
+│   ├── checklists-prevention.ts, conseils-saisonniers.ts, alertes.ts
 │   ├── global-search.ts      # Recherche globale
-│   ├── notifications.ts      # Système notifications
-│   └── alertes.ts            # Types et données alertes
-├── public/
-│   ├── icons/                # Icônes PWA et raccourcis
-│   └── manifest.json         # Manifest PWA avec raccourcis (shortcuts)
-└── data/
-    └── emergency-numbers.ts
+│   └── notifications.ts      # Abonnement Web Push côté client
+├── supabase/migrations/      # push_subscriptions, sent_notifications, RLS
+└── public/
+    ├── icons/                # Icônes PWA et raccourcis (PNG + SVG)
+    └── manifest.json         # Manifest PWA avec raccourcis
 ```
 
 ## APIs
@@ -303,20 +309,22 @@ Les notifications push alertent l'utilisateur en cas de vigilance orange ou roug
 |------|--------|-----------|
 | Vigilance météo | Météo-France via Opendatasoft | 5 min |
 | Vigilance crues | Vigicrues (Ministère Transition écologique) | 5 min |
-| Qualité de l'air | Open-Meteo Air Quality | 30 min |
-| Risque incendie forêt | Météo des forêts (calcul IFM) | 30 min |
-| Risque incendie | Calcul FWI (Open-Meteo) | 1 heure |
-| Défibrillateurs | OpenDataSoft - DAE France | 1 heure |
+| Qualité de l'air | Open-Meteo Air Quality (indice européen, CAMS) | 30 min |
+| Risque incendie | **Estimation SécuCitoyen** (indice simplifié, non officiel, plafonné à orange, jamais poussé en notification) | 30 min |
+| Défibrillateurs | OpenStreetMap via OpenDataSoft (`osm-france-defibrillator`, ODbL) | 1 heure |
+| Département depuis la position | geo.api.gouv.fr | 24 h |
+
+Seules les sources officielles (Météo-France, Vigicrues) peuvent déclencher une notification push ; en cas d'indisponibilité d'une source, aucune donnée n'est simulée (drapeau `degraded`).
 
 ## Contenu
 
 | Section | Quantité |
 |---------|----------|
-| Fiches secours | 15 |
+| Fiches secours | 14 |
 | Conseils prévention | 52 |
 | Thématiques saisonnières | 18 |
-| Numéros d'urgence | 12+ |
-| Sources d'alertes | 5 |
+| Numéros d'urgence | 17 |
+| Sources d'alertes | 4 (+ 1 estimation) |
 
 ## Déploiement, cron & monitoring
 
@@ -329,7 +337,16 @@ Voir `.env.local.example`. Les indispensables :
 - `NOTIFICATIONS_API_KEY`, `CRON_SECRET` (secrets forts, pas les placeholders)
 - `NEXT_PUBLIC_SENTRY_DSN` (+ `SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN` pour l'upload des sourcemaps)
 
-Appliquer aussi les migrations SQL de `supabase/migrations/` (dont `004_secure_rls.sql`).
+Appliquer aussi les migrations SQL de `supabase/migrations/` (dont `004_secure_rls.sql` et `005_sent_notifications_unique.sql`).
+
+### Tests
+```bash
+npm test                 # Jest (unitaires + routes API)
+npm run test:e2e         # Playwright (navigation, responsive, a11y axe-core, page Alertes mockée)
+# Tests hors-ligne (service worker) sur un build de production :
+npx next build && npx next start
+E2E_PWA=1 npx playwright test e2e/offline.spec.ts --project="Desktop Chrome"
+```
 
 ### Cron des notifications
 Le plan Vercel Hobby n'autorise pas de cron plus fréquent qu'une fois par jour.

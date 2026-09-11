@@ -1,7 +1,15 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
+export const metadata: Metadata = {
+  title: 'Mentions légales',
+  description: "Éditeur, hébergement, propriété intellectuelle et avertissements de l'application SécuCitoyen.",
+  alternates: { canonical: '/mentions-legales' },
+  robots: { index: false, follow: true },
+};
+
+// TODO (éditeur) : si l'application est publiée par une personne morale,
+// compléter la section 1 avec la raison sociale, l'adresse et le SIRET (LCEN).
 export default function MentionsLegalesPage() {
   return (
     <div className="p-4 space-y-6 max-w-3xl mx-auto">
@@ -10,7 +18,7 @@ export default function MentionsLegalesPage() {
           Mentions légales
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Dernière mise à jour : Janvier 2025
+          Dernière mise à jour : septembre 2026
         </p>
       </section>
 
@@ -19,17 +27,17 @@ export default function MentionsLegalesPage() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
             1. Éditeur de l&apos;application
           </h2>
-          <p className="text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed mb-3">
             <strong>SécuCitoyen</strong> est une application web progressive (PWA) à vocation
             informative et éducative dans le domaine de la prévention des risques et des
-            gestes de premiers secours.
+            gestes de premiers secours. Elle est éditée à titre personnel et non commercial,
+            sous licence MIT.
           </p>
-          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <p className="text-sm text-amber-800 dark:text-amber-300">
-              <strong>Note :</strong> Complétez cette section avec vos informations légales
-              (nom/raison sociale, adresse, SIRET, contact).
-            </p>
-          </div>
+          <p className="text-sm leading-relaxed">
+            Directeur de la publication et contact :{' '}
+            <a href="mailto:xav.robart@gmail.com" className="text-primary hover:underline">xav.robart@gmail.com</a>
+            {' '}(voir aussi la <Link href="/contact" className="text-primary hover:underline">page de contact</Link>).
+          </p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
@@ -37,14 +45,11 @@ export default function MentionsLegalesPage() {
             2. Hébergement
           </h2>
           <p className="text-sm leading-relaxed">
-            L&apos;application est hébergée par :
+            L&apos;application est hébergée par <strong>Vercel Inc.</strong>, 440 N Barranca Avenue #4133,
+            Covina, CA 91723, États-Unis (<a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">vercel.com</a>).
+            Les abonnements aux notifications sont stockés chez <strong>Supabase Inc.</strong>
+            (base de données hébergée dans l&apos;Union européenne).
           </p>
-          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <p className="text-sm text-amber-800 dark:text-amber-300">
-              <strong>Note :</strong> Indiquez votre hébergeur (Vercel, Netlify, OVH, etc.)
-              avec son adresse et contact.
-            </p>
-          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
@@ -99,12 +104,14 @@ export default function MentionsLegalesPage() {
           <ul className="text-sm space-y-2 ml-4 list-disc">
             <li><strong>Météo-France</strong> - Vigilances météorologiques (via Opendatasoft)</li>
             <li><strong>Vigicrues</strong> - Vigilance crues (Ministère de la Transition écologique)</li>
-            <li><strong>Open-Meteo</strong> - Qualité de l&apos;air et données météo</li>
-            <li><strong>OpenDataSoft</strong> - Localisation des défibrillateurs (DAE)</li>
+            <li><strong>Open-Meteo</strong> - Qualité de l&apos;air (indice européen, modèle CAMS) et données météo</li>
+            <li><strong>OpenStreetMap</strong> (via OpenDataSoft) - Localisation des défibrillateurs (DAE), données contributives sous licence ODbL, © les contributeurs OpenStreetMap</li>
+            <li><strong>geo.api.gouv.fr</strong> - Département à partir d&apos;une position</li>
           </ul>
           <p className="text-sm leading-relaxed mt-3 text-gray-500 dark:text-gray-400">
-            Ces données sont fournies à titre indicatif. En cas de doute, référez-vous
-            directement aux sources officielles.
+            Ces données sont fournies à titre indicatif. Le risque incendie affiché est une
+            estimation calculée par l&apos;application, non un produit officiel. En cas de doute,
+            référez-vous directement aux sources officielles.
           </p>
         </div>
 

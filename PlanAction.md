@@ -251,12 +251,15 @@ des colonnes/JSON par langue côté données.
 |-------|---------|--------|
 | **Phase 1** | 1.2 Retry APIs + Circuit Breaker | FAIT |
 | **Phase 1** | 1.1 Tests unitaires + E2E | FAIT |
-| **Phase 1** | 1.3 Notifications push | FAIT |
-| **Phase 2** | 2.1 Externaliser données vers Supabase | FAIT |
+| **Phase 1** | 1.3 Notifications push (cron GitHub Actions, pas Vercel Cron) | FAIT |
+| **Phase 2** | 2.1 Externaliser données vers Supabase | ANNULÉ (contenu statique assumé) |
 | **Phase 2** | 2.3 Renforcer le typage TypeScript | FAIT |
-| **Phase 2** | 2.4 Améliorer le système i18n | FAIT |
-| **Phase 3** | 3.1 IndexedDB cache persistant | FAIT |
+| **Phase 2** | 2.4 Système i18n | RETIRÉ (FR uniquement) |
+| **Phase 3** | 3.1 IndexedDB cache persistant | SUPPRIMÉ (jamais branché ; le hors-ligne repose sur le service worker, voir CORRECTIFS.md) |
 | **Phase 3** | 3.2 SEO (sitemap, OG, JSON-LD, robots) | FAIT |
-| **Phase 3** | 3.3 Accessibilité (a11y) | FAIT |
+| **Phase 3** | 3.3 Accessibilité (a11y) | FAIT (complété par CORRECTIFS.md Phase 3) |
 | **Phase 3** | 3.4 Optimisation performances | FAIT |
 | **Phase 4** | 3.5 Mode urgence | A faire |
+
+> Ce plan est historique. L'audit du 10/09/2026 et ses correctifs (Phases 1 à 3) sont
+> suivis dans `CORRECTIFS.md`.

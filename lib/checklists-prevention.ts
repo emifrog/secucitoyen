@@ -19,7 +19,7 @@ export const checklistsPrevention: ChecklistCategory[] = [
     id: 'domicile',
     title: 'Sécurité domicile',
     icon: '🏠',
-    color: 'bg-blue-500',
+    color: 'bg-blue-600',
     description: 'Vérifications essentielles pour sécuriser votre logement',
     items: [
       {
@@ -88,7 +88,7 @@ export const checklistsPrevention: ChecklistCategory[] = [
     id: 'kit-urgence',
     title: 'Kit d\'urgence',
     icon: '🎒',
-    color: 'bg-red-500',
+    color: 'bg-red-600',
     description: 'Éléments à avoir prêts en cas d\'évacuation ou de confinement',
     items: [
       {
@@ -169,7 +169,7 @@ export const checklistsPrevention: ChecklistCategory[] = [
     id: 'routiere',
     title: 'Sécurité routière',
     icon: '🚗',
-    color: 'bg-green-500',
+    color: 'bg-green-700',
     description: 'Équipements et vérifications pour la route',
     items: [
       {
@@ -238,7 +238,7 @@ export const checklistsPrevention: ChecklistCategory[] = [
     id: 'cyber',
     title: 'Cybersécurité',
     icon: '💻',
-    color: 'bg-purple-500',
+    color: 'bg-purple-600',
     description: 'Bonnes pratiques pour protéger vos données numériques',
     items: [
       {
@@ -307,7 +307,7 @@ export const checklistsPrevention: ChecklistCategory[] = [
     id: 'risques-naturels',
     title: 'Risques naturels',
     icon: '🌊',
-    color: 'bg-amber-500',
+    color: 'bg-amber-700',
     description: 'Préparation face aux catastrophes naturelles',
     items: [
       {

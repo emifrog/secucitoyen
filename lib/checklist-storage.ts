@@ -1,8 +1,5 @@
-'use client';
-
 import { checklistsPrevention } from './checklists-prevention';
-
-const STORAGE_KEY = 'secucitoyen_checklists';
+import { STORAGE_KEYS } from './storage-keys';
 
 // Total réel des items, dérivé des données (évite un compteur figé qui
 // fausserait la progression dès qu'un conseil est ajouté ou retiré).
@@ -18,11 +15,19 @@ export interface ChecklistProgress {
   };
 }
 
+function save(progress: ChecklistProgress): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.checklists, JSON.stringify(progress));
+  } catch {
+    // Stockage indisponible (navigation privée, quota) : progression non persistée.
+  }
+}
+
 export function getChecklistProgress(): ChecklistProgress {
   if (typeof window === 'undefined') return {};
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEYS.checklists);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
@@ -47,18 +52,14 @@ export function toggleItem(checklistId: string, itemId: string): string[] {
     lastUpdated: new Date().toISOString(),
   };
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  save(progress);
   return updated;
 }
 
 export function resetChecklist(checklistId: string): void {
   const progress = getChecklistProgress();
   delete progress[checklistId];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-}
-
-export function resetAllChecklists(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  save(progress);
 }
 
 export function getOverallProgress(): {

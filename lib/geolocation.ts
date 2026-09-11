@@ -1,6 +1,5 @@
-'use client';
-
 import { findNearestDepartement, getDepartement } from './departements';
+import { STORAGE_KEYS } from './storage-keys';
 
 // Géolocalisation côté navigateur et résolution du département.
 //
@@ -24,7 +23,7 @@ export interface ResolvedDepartment {
   estimated: boolean;
 }
 
-const DEPARTMENT_KEY = 'secucitoyen_department';
+const DEPARTMENT_KEY = STORAGE_KEYS.department;
 const GEOCODE_TIMEOUT_MS = 6000;
 
 /**

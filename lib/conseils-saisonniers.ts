@@ -22,7 +22,7 @@ export const saisons: Saison[] = [
     nom: 'Hiver',
     icon: '❄️',
     mois: [11, 0, 1], // Décembre, Janvier, Février
-    couleur: 'bg-blue-500',
+    couleur: 'bg-blue-600',
     conseils: [
       {
         id: 'verglas',
@@ -88,7 +88,7 @@ export const saisons: Saison[] = [
     nom: 'Printemps',
     icon: '🌸',
     mois: [2, 3, 4], // Mars, Avril, Mai
-    couleur: 'bg-green-500',
+    couleur: 'bg-green-700',
     conseils: [
       {
         id: 'allergies',
@@ -154,7 +154,7 @@ export const saisons: Saison[] = [
     nom: 'Été',
     icon: '☀️',
     mois: [5, 6, 7], // Juin, Juillet, Août
-    couleur: 'bg-yellow-500',
+    couleur: 'bg-yellow-700',
     conseils: [
       {
         id: 'canicule',
@@ -236,7 +236,7 @@ export const saisons: Saison[] = [
     nom: 'Automne',
     icon: '🍂',
     mois: [8, 9, 10], // Septembre, Octobre, Novembre
-    couleur: 'bg-orange-500',
+    couleur: 'bg-orange-700',
     conseils: [
       {
         id: 'chasse',
@@ -322,13 +322,6 @@ export function getSaisonActuelle(): Saison {
 }
 
 /**
- * Retourne tous les conseils de la saison actuelle
- */
-export function getConseilsSaisonActuelle(): ConseilSaisonnier[] {
-  return getSaisonActuelle().conseils;
-}
-
-/**
  * Retourne un conseil spécifique par ID
  */
 export function getConseilById(id: string): ConseilSaisonnier | undefined {
@@ -337,18 +330,4 @@ export function getConseilById(id: string): ConseilSaisonnier | undefined {
     if (conseil) return conseil;
   }
   return undefined;
-}
-
-/**
- * Retourne toutes les saisons avec un résumé
- */
-export function getSaisonsSummary() {
-  return saisons.map((s) => ({
-    id: s.id,
-    nom: s.nom,
-    icon: s.icon,
-    couleur: s.couleur,
-    conseilCount: s.conseils.length,
-    isActive: s.mois.includes(new Date().getMonth()),
-  }));
 }

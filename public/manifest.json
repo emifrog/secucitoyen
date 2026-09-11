@@ -1,12 +1,15 @@
 {
+  "id": "/",
   "name": "SécuCitoyen",
   "short_name": "SécuCitoyen",
   "description": "Application de sécurité citoyenne - Prévention, alertes et urgences",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1E3A5F",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#F9FAFB",
   "theme_color": "#1E3A5F",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -39,28 +42,28 @@
       "short_name": "SAMU 15",
       "description": "Urgence médicale",
       "url": "/urgences/15",
-      "icons": [{ "src": "/icons/shortcut-15.svg", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/shortcut-15.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Appeler le 18 (Pompiers)",
       "short_name": "Pompiers 18",
       "description": "Incendie et secours",
       "url": "/urgences/18",
-      "icons": [{ "src": "/icons/shortcut-18.svg", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/shortcut-18.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Appeler le 17 (Police)",
       "short_name": "Police 17",
       "description": "Police secours",
       "url": "/urgences/17",
-      "icons": [{ "src": "/icons/shortcut-17.svg", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/shortcut-17.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Défibrillateurs",
       "short_name": "DAE",
       "description": "Trouver un défibrillateur",
       "url": "/defibrillateurs",
-      "icons": [{ "src": "/icons/shortcut-dae.svg", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/shortcut-dae.png", "sizes": "96x96", "type": "image/png" }]
     }
   ],
   "categories": ["health", "utilities", "lifestyle"],

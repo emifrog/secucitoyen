@@ -9,6 +9,7 @@ import {
   subscribeToPush,
 } from '@/lib/notifications';
 import { getSavedDepartment } from '@/lib/geolocation';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 type PermissionState = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -27,7 +28,7 @@ export default function NotificationPrompt() {
     setPermission(settings.permission as PermissionState);
 
     // Vérifier si déjà fermé
-    const wasDismissed = localStorage.getItem('secucitoyen_notif_dismissed');
+    const wasDismissed = localStorage.getItem(STORAGE_KEYS.notificationsDismissed);
     if (wasDismissed) {
       setDismissed(true);
     }
@@ -64,7 +65,7 @@ export default function NotificationPrompt() {
 
   const dismiss = () => {
     setDismissed(true);
-    localStorage.setItem('secucitoyen_notif_dismissed', 'true');
+    localStorage.setItem(STORAGE_KEYS.notificationsDismissed, 'true');
   };
 
   // Ne rien afficher si déjà accordé, refusé ou fermé
@@ -75,7 +76,7 @@ export default function NotificationPrompt() {
   return (
     <section className="bg-gradient-to-r from-accent/10 to-accent/5 dark:from-accent/20 dark:to-accent/10 border border-accent/20 rounded-xl p-4">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center text-xl flex-shrink-0">
+        <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center text-xl flex-shrink-0" aria-hidden="true">
           🔔
         </div>
         <div className="flex-1">
@@ -87,7 +88,7 @@ export default function NotificationPrompt() {
             <button
               onClick={handleRequestPermission}
               disabled={loading}
-              className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 min-h-11 bg-orange-700 text-white rounded-lg text-sm font-medium hover:bg-orange-800 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? (
                 <>
@@ -111,10 +112,10 @@ export default function NotificationPrompt() {
         </div>
         <button
           onClick={dismiss}
-          className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+          className="p-2.5 -m-1.5 min-w-11 min-h-11 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors"
           aria-label="Fermer"
         >
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

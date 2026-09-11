@@ -62,7 +62,7 @@ export default function DailyTip() {
     <section>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Conseil du jour</h3>
-        <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-full">
+        <span className="text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-full">
           {tip.category}
         </span>
       </div>
@@ -78,7 +78,7 @@ export default function DailyTip() {
             </div>
           </div>
           <div className="flex justify-end mt-3">
-            <span className="text-xs text-accent font-medium flex items-center gap-1">
+            <span className="text-xs text-orange-700 dark:text-orange-400 font-medium flex items-center gap-1">
               En savoir plus
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

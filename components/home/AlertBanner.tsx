@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import type { UnifiedAlert } from '@/lib/types/api-responses';
 import { getSavedDepartment } from '@/lib/geolocation';
+import { TIMINGS } from '@/lib/ui-tokens';
 
+// Fond + couleur de texte lisible dessus (le blanc sur orange-500 ne dépasse
+// pas 2,8:1 : texte sombre sur orange, jaune et vert ; blanc sur rouge).
 const severityConfig = {
   rouge: {
     bg: 'bg-red-600 text-white',
@@ -13,7 +16,7 @@ const severityConfig = {
     priority: 4,
   },
   orange: {
-    bg: 'bg-orange-500 text-white',
+    bg: 'bg-orange-500 text-gray-900',
     text: 'Vigilance orange',
     icon: '🟠',
     priority: 3,
@@ -25,14 +28,14 @@ const severityConfig = {
     priority: 2,
   },
   vert: {
-    bg: 'bg-green-500 text-white',
+    bg: 'bg-green-500 text-gray-900',
     text: 'Vigilance verte',
     icon: '🟢',
     priority: 1,
   },
 };
 
-const REFRESH_MS = 5 * 60 * 1000;
+const REFRESH_MS = TIMINGS.alertsRefreshMs;
 const ROTATION_MS = 5000;
 
 export default function AlertBanner() {
@@ -79,8 +82,22 @@ export default function AlertBanner() {
 
   useEffect(() => {
     fetchAlerts();
-    const interval = setInterval(fetchAlerts, REFRESH_MS);
-    return () => clearInterval(interval);
+    // Rafraîchissement uniquement quand l'onglet est visible.
+    let interval: ReturnType<typeof setInterval> | null = setInterval(fetchAlerts, REFRESH_MS);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAlerts();
+        if (!interval) interval = setInterval(fetchAlerts, REFRESH_MS);
+      } else if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [fetchAlerts]);
 
   // Rotation des alertes si plusieurs. L'index est remis à zéro à chaque
@@ -117,22 +134,22 @@ export default function AlertBanner() {
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-lg flex-shrink-0" aria-hidden="true">{currentAlert.icon || config.icon}</span>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-medium opacity-90 flex items-center gap-2">
+            <div className="text-xs font-medium flex items-center gap-2">
               <span>{config.text}</span>
               {alerts.length > 1 && (
-                <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs">
-                  {currentIndex + 1}/{alerts.length}
+                <span className="bg-black/10 px-1.5 py-0.5 rounded text-xs">
+                  <span className="sr-only">Alerte </span>{currentIndex + 1}/{alerts.length}
                 </span>
               )}
             </div>
             <div className="font-semibold truncate">{currentAlert.title}</div>
-            <div className="text-xs opacity-80 truncate">
+            <div className="text-xs truncate">
               {currentAlert.department} • {currentAlert.source}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+          <span className="text-xs bg-black/10 px-2 py-1 rounded-full">
             Voir
           </span>
           <button
@@ -140,8 +157,8 @@ export default function AlertBanner() {
               e.preventDefault();
               setDismissed(true);
             }}
-            className="p-2 -m-1 hover:bg-white/20 rounded-full transition-colors"
-            aria-label="Fermer l'alerte"
+            className="p-2.5 -m-1.5 min-w-11 min-h-11 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+            aria-label="Masquer la bannière d'alerte"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui';
@@ -9,6 +10,17 @@ interface PageProps {
 
 // La saison de repli est calculée côté serveur : revalidation quotidienne.
 export const revalidate = 86400;
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const conseil = getConseilById(id);
+  if (!conseil) return { title: 'Conseil non trouvé' };
+  return {
+    title: conseil.titre,
+    description: conseil.description,
+    alternates: { canonical: `/conseils-saison/${conseil.id}` },
+  };
+}
 
 export async function generateStaticParams() {
   const allConseils: { id: string }[] = [];
@@ -111,7 +123,7 @@ export default async function ConseilSaisonDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="font-medium text-red-800 dark:text-red-300">SAMU</p>
-              <p className="text-xs text-red-600 dark:text-red-400">Urgence médicale</p>
+              <p className="text-xs text-red-700 dark:text-red-400">Urgence médicale</p>
             </div>
           </a>
 
@@ -144,7 +156,7 @@ export default async function ConseilSaisonDetailPage({ params }: PageProps) {
           </div>
           <Link
             href="/secours"
-            className="px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-3 py-2 min-h-11 inline-flex items-center bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             Voir les fiches
           </Link>

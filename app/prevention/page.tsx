@@ -3,11 +3,13 @@ import Link from 'next/link';
 import { Card } from '@/components/ui';
 import { getChecklistsSummary } from '@/lib/checklists-prevention';
 
+import OverallProgress from '@/components/prevention/OverallProgress';
+
 export const metadata: Metadata = {
   title: 'Prévention',
   description: 'Check-lists de prévention : sécurité domicile, kit d\'urgence, sécurité routière, cybersécurité et risques naturels.',
+  alternates: { canonical: '/prevention' },
 };
-import OverallProgress from '@/components/prevention/OverallProgress';
 
 export default function PreventionPage() {
   const checklists = getChecklistsSummary();
@@ -16,7 +18,7 @@ export default function PreventionPage() {
     <div className="p-4 lg:p-6 space-y-5">
       {/* Header */}
       <section>
-        <h2 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Prévention</h2>
+        <h1 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">Prévention</h1>
         <p className="text-gray-600 dark:text-gray-400 text-center">
           Check-lists interactives pour sécuriser votre quotidien.
         </p>
@@ -27,18 +29,18 @@ export default function PreventionPage() {
 
       {/* Liste des check-lists */}
       <section className="space-y-3">
-        <h3 className="font-semibold text-gray-800 dark:text-gray-100">Vos check-lists</h3>
+        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Vos check-lists</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {checklists.map((checklist) => (
           <Link key={checklist.id} href={`/prevention/${checklist.id}`}>
             <Card className="flex items-center gap-4 hover:shadow-lg transition-all active:scale-[0.99]">
-              <div className={`w-14 h-14 ${checklist.color} rounded-xl flex items-center justify-center text-2xl flex-shrink-0`}>
+              <div className={`w-14 h-14 ${checklist.color} rounded-xl flex items-center justify-center text-2xl flex-shrink-0`} aria-hidden="true">
                 {checklist.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-gray-800 dark:text-gray-100">{checklist.title}</h4>
+                <h3 className="font-bold text-gray-800 dark:text-gray-100">{checklist.title}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{checklist.description}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{checklist.itemCount} éléments</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{checklist.itemCount} éléments</p>
               </div>
               <svg className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -63,7 +65,7 @@ export default function PreventionPage() {
       {/* Ressources */}
       <section className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-4 text-white">
         <h3 className="font-semibold mb-2">Ressources officielles</h3>
-        <p className="text-sm text-white/80 mb-3">
+        <p className="text-sm text-white/90 mb-3">
           Consultez les recommandations du gouvernement sur les risques.
         </p>
         <Link

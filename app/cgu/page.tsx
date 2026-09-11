@@ -1,6 +1,12 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: "Conditions générales d'utilisation",
+  description: "Conditions générales d'utilisation de l'application SécuCitoyen.",
+  alternates: { canonical: '/cgu' },
+  robots: { index: false, follow: true },
+};
 
 export default function CGUPage() {
   return (
@@ -10,7 +16,7 @@ export default function CGUPage() {
           Conditions Générales d&apos;Utilisation
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Dernière mise à jour : Janvier 2025
+          Dernière mise à jour : septembre 2026
         </p>
       </section>
 

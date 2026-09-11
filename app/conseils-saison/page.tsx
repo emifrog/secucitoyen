@@ -1,6 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card } from '@/components/ui';
 import { saisons, getSaisonActuelle } from '@/lib/conseils-saisonniers';
+
+export const metadata: Metadata = {
+  title: 'Conseils saisonniers',
+  description: 'Risques et conseils de prévention adaptés à chaque saison : hiver, printemps, été, automne.',
+  alternates: { canonical: '/conseils-saison' },
+};
 
 // La saison est calculée côté serveur : sans revalidation, elle resterait
 // figée à la date du build jusqu'au déploiement suivant.
@@ -13,9 +20,9 @@ export default function ConseilsSaisonPage() {
     <div className="p-4 lg:p-6 space-y-5">
       {/* Header */}
       <section>
-        <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
           Conseils saisonniers
-        </h2>
+        </h1>
         <p className="text-gray-600 dark:text-gray-400">
           Risques et prévention adaptés à chaque saison
         </p>
@@ -26,7 +33,7 @@ export default function ConseilsSaisonPage() {
         <div className="flex items-center gap-3 mb-3">
           <span className="text-4xl">{saisonActuelle.icon}</span>
           <div>
-            <p className="text-sm text-white/80">Saison actuelle</p>
+            <p className="text-sm text-white">Saison actuelle</p>
             <h3 className="text-xl font-bold">{saisonActuelle.nom}</h3>
           </div>
         </div>
@@ -89,7 +96,7 @@ export default function ConseilsSaisonPage() {
                 <div className={`${saison.couleur} rounded-xl p-4 text-white hover:opacity-90 transition-opacity`}>
                   <div className="text-3xl mb-2">{saison.icon}</div>
                   <h4 className="font-semibold">{saison.nom}</h4>
-                  <p className="text-sm text-white/80">{saison.conseils.length} conseils</p>
+                  <p className="text-sm text-white">{saison.conseils.length} conseils</p>
                 </div>
               </Link>
             ))}

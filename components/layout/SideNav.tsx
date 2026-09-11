@@ -2,27 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const mainNav = [
-  { href: '/', label: 'Accueil', icon: '🏠' },
-  { href: '/urgences', label: 'Urgences', icon: '🚨' },
-  { href: '/secours', label: 'Premiers secours', icon: '🏥' },
-  { href: '/prevention', label: 'Prévention', icon: '🛡️' },
-  { href: '/alertes', label: 'Alertes', icon: '🔔' },
-  { href: '/defibrillateurs', label: 'Défibrillateurs', icon: '🫀' },
-  { href: '/conseils-saison', label: 'Conseils saisonniers', icon: '🗓️' },
-];
-
-const secondaryNav = [
-  { href: '/contact', label: 'Contact', icon: '✉️' },
-  { href: '/mentions-legales', label: 'Mentions légales', icon: '📜' },
-  { href: '/confidentialite', label: 'Confidentialité', icon: '🔒' },
-];
-
-function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+import { mainNav, secondaryNav, isNavActive as isActive } from '@/lib/nav';
 
 /**
  * Navigation latérale, visible uniquement sur desktop (lg+). Remplace la
@@ -34,7 +14,7 @@ export default function SideNav() {
   const linkClass = (href: string) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
       isActive(pathname, href)
-        ? 'bg-accent/10 text-accent'
+        ? 'bg-accent/10 text-orange-800 dark:text-orange-300'
         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
     }`;
 

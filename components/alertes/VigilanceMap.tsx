@@ -1,7 +1,6 @@
-'use client';
-
 import Link from 'next/link';
 
+// Composant serveur (aucune interactivité au-delà d'un lien externe).
 export default function VigilanceMap() {
   return (
     <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
@@ -24,11 +23,13 @@ export default function VigilanceMap() {
             </svg>
           </div>
           <div className="relative z-10 text-center p-4">
-            <div className="text-4xl mb-2">🗺️</div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+            <div className="text-4xl mb-2" aria-hidden="true">🗺️</div>
+            {/* Le dégradé vert n'a pas de variante sombre : le texte reste
+                foncé dans les deux thèmes (gray-500 sur green-200 < 4:1). */}
+            <p className="text-sm font-medium text-gray-800">
               Carte de vigilance Météo-France
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-gray-700 mt-1">
               Cliquez pour voir la carte officielle
             </p>
           </div>

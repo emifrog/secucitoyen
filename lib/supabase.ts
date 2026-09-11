@@ -1,26 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let _supabase: SupabaseClient | null = null;
 let _supabaseAdmin: SupabaseClient | null = null;
-
-/**
- * Client public (clé anon). N'a accès qu'aux données protégées par des
- * politiques RLS ouvertes à `anon`. Ne doit PAS être utilisé pour les
- * tables sensibles (push_subscriptions, sent_notifications).
- */
-export function getSupabase(): SupabaseClient {
-  if (!_supabase) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-    _supabase = createClient(supabaseUrl, supabaseAnonKey);
-  }
-  return _supabase;
-}
 
 /**
  * Client serveur (clé service_role). Contourne la RLS : à n'utiliser
  * QUE dans des route handlers côté serveur, jamais exposé au client.
  * Sert aux opérations sur push_subscriptions et sent_notifications.
+ *
+ * Il n'existe volontairement pas de client « anon » : le navigateur ne parle
+ * jamais à Supabase (les tables sont verrouillées par la migration 004) et un
+ * client public exporté invitait à un usage accidentel côté client.
  */
 export function getSupabaseAdmin(): SupabaseClient {
   if (!_supabaseAdmin) {
@@ -37,10 +26,3 @@ export function getSupabaseAdmin(): SupabaseClient {
   }
   return _supabaseAdmin;
 }
-
-// Compat : export direct pour les imports existants (client public anon).
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    return (getSupabase() as unknown as Record<string | symbol, unknown>)[prop];
-  },
-});

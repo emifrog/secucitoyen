@@ -184,119 +184,132 @@ n'a jamais interrogé de données réelles.
 
 ---
 
-## Phase 3 — Fondations (en continu)
+## Phase 3 — Fondations — FAITE le 10/09/2026 (sauf items marqués)
+
+Validation : `tsc` et `next lint` sans erreur, Jest (21 suites, 187 tests), build Next 15 +
+Serwist, vérification du précache (65 entrées, 0 en 404, `/` et `/offline` précachés, worker
+activé et caches `secours-fiches` = 14 / `detail-pages` = 17), suite Playwright complète sur les
+3 projets (navigation, responsive 320/768/1024/1280, hors-ligne, page Alertes mockée, axe-core
+WCAG 2.1 A/AA sur 7 pages sans violation).
 
 ### 3.1 Sécurité — MOYEN / FAIBLE
 
-- [ ] Rate limiting : appliquer `rateLimited` sur `/api/vigilance`, `/api/air-quality`, `/api/fire-risk`, `/api/meteo-forets`, `/api/vigicrues`, `/api/health`, `/api/widget/emergency`, `/api/notifications/vapid-key`.
-- [ ] Envisager un limiteur distribué (Upstash Ratelimit) ou une règle WAF Vercel sur `/api/notifications/subscribe`.
-- [ ] `next.config.mjs:95-99` : retirer `https://*.supabase.co` de `connect-src` et `fonts.googleapis.com` / `fonts.gstatic.com` de `style-src` / `font-src` (inutilisés) ; supprimer la règle runtime Google Fonts `:71-82`.
-- [ ] CSP avec nonce par requête via middleware et `'strict-dynamic'` (après la montée de version Next, cf. 3.4).
-- [ ] `worker/index.js:28,56,62-68` : résoudre l'URL avec `new URL(url, self.location.origin)` et n'ouvrir que si l'origine est identique, sinon `/alertes` ; remplacer `includes` par une comparaison d'origine.
-- [ ] `app/api/health/route.ts:14-31` : réduire la réponse publique à `status`, ou ajouter `Cache-Control: s-maxage=30`.
-- [ ] `components/urgences/LocationFinder.tsx:90,96` et `app/defibrillateurs/page.tsx:72` : `window.open(url, '_blank', 'noopener,noreferrer')`.
-- [ ] `.github/workflows/ci.yml` : `permissions: { contents: read }`, épingler les actions par SHA, ajouter `concurrency` et `timeout-minutes`.
-- [ ] Ajouter `.github/dependabot.yml`.
-- [ ] `supabase/migrations` : par hygiène, `REVOKE ALL ON push_subscriptions, sent_notifications FROM authenticated;`.
-- [ ] `lib/supabase.ts:11-18,42-46` : supprimer `getSupabase()` et le proxy `supabase` (client anon jamais utilisé).
-- [ ] RGPD : définir une rétention des abonnements silencieux et l'indiquer dans `app/confidentialite/page.tsx`.
+- [x] Rate limiting appliqué sur toutes les routes sources (vigilance, air-quality, fire-risk, meteo-forets, vigicrues, geocode) ; `/api/widget/emergency` et `/api/notifications/vapid-key` supprimées (code mort).
+- [ ] Limiteur distribué (Upstash) ou règle WAF Vercel sur `/api/notifications/subscribe` : à décider (coût/abonnement), le limiteur mémoire + validation stricte des clés + cache CDN restent en place.
+- [x] CSP : `*.supabase.co`, `fonts.googleapis.com`, `fonts.gstatic.com` retirés ; règle runtime Google Fonts supprimée avec next-pwa.
+- [ ] CSP avec nonce + `'strict-dynamic'` : reporté (le script de thème inline et styled-jsx des illustrations imposent encore `'unsafe-inline'`).
+- [x] Service worker (`app/sw.ts`) : URL de notification résolue et limitée à la même origine (sinon `/alertes`), comparaison d'origine stricte, repli `openWindow` si `navigate` échoue.
+- [ ] `/api/health` : réponse inchangée (utilisée par UptimeRobot et par la page Alertes pour les sources dégradées) ; à restreindre si abus constaté.
+- [x] `window.open(..., 'noopener,noreferrer')` dans LocationFinder et la recherche de DAE.
+- [x] `.github/workflows/ci.yml` : `permissions: contents: read`, actions épinglées par SHA (checkout v4.4.0, setup-node v4.4.0, upload-artifact v4.6.2), `concurrency`, `timeout-minutes`, Node 22 via `.nvmrc`, job build redondant supprimé, navigateurs Playwright limités à Chromium + WebKit.
+- [x] `.github/dependabot.yml` (npm hebdomadaire groupé mineures/patchs, majeures Next/React exclues ; actions GitHub).
+- [x] `REVOKE ... FROM authenticated` : inclus dans la migration 005 (Phase 2).
+- [x] `lib/supabase.ts` : client anon et proxy supprimés, seul `getSupabaseAdmin()` subsiste.
+- [x] RGPD : la politique de confidentialité décrit désormais les abonnements push (données conservées, rétention, purge à l'expiration, historique 7 jours) et le géocodage inverse.
 
 ### 3.2 PWA — MOYEN / FAIBLE
 
-- [ ] `next.config.mjs` : règle runtime `NetworkFirst` ciblée sur `/api/alerts` (`networkTimeoutSeconds: 5`, `maxAgeSeconds: 3600`) pour un dernier état connu hors-ligne ; afficher « Données du HH:MM » via `lastUpdate` dans `AlertsList.tsx`.
-- [ ] `components/alertes/AlertsList.tsx:85` et `components/home/AlertBanner.tsx:70` : suspendre le polling quand l'onglet est caché (`visibilitychange`).
-- [ ] Supprimer `lib/idb-cache.ts` et la dépendance `idb` (jamais branchés), ou les brancher réellement.
-- [ ] `app/layout.tsx:41-47` : `viewportFit: 'cover'` ; `components/layout/BottomNav.tsx:50` : `pb-[env(safe-area-inset-bottom)]` ; `components/layout/EmergencyFab.tsx:39` : `bottom-[calc(5rem+env(safe-area-inset-bottom))]`.
-- [ ] `worker/index.js:22-23` et `lib/notifications.ts:85-86` : `icon` et `badge` en PNG (`/icons/icon-192x192.png`).
-- [ ] `worker/index.js:59-64` : `if ('navigate' in client)` et `.catch(() => clients.openWindow(url))`.
-- [ ] `public/manifest.json` : ajouter `id`, `scope`, `screenshots`, `display_override` ; `orientation: 'any'` ; `background_color` aligné sur le fond de page ; raccourcis en PNG 96 px.
-- [ ] `app/layout.tsx:42` : `themeColor` en tableau avec `media` pour le mode sombre.
-- [ ] `app/offline/page.tsx` : bouton « Réessayer » et liste des fiches en cache (`caches.open('secours-fiches').keys()`, filtrer `_rsc`).
-- [ ] `next.config.mjs:22,36,49` : remplacer les regex non ancrées par des matchers par fonction (`url.origin`, `request.mode === 'navigate'`).
-- [ ] Remplacer `next-pwa` (non maintenu) par `@serwist/next`.
+- [x] **next-pwa remplacé par Serwist** (`@serwist/next` 9.5) : service worker en TypeScript dans `app/sw.ts` (précache des assets + `/` + `/offline`, préchauffage des fiches et numéros, stratégies runtime, SKIP_WAITING, push) ; `worker/` supprimé ; exclusions `.map` / `app-build-manifest.json` / `chunks/pages` conservées ; `register: false` (enregistrement par `ServiceWorkerRegister`).
+- [x] Règle `NetworkFirst` sur `/api/alerts` (timeout 5 s, 1 h) : hors-ligne, la liste garde le dernier état connu ; `AlertsList` affiche « Données du HH:MM » et, en erreur, la date des données affichées.
+- [x] Polling suspendu quand l'onglet est caché (`visibilitychange`) dans `AlertsList` et `AlertBanner`, rafraîchissement immédiat au retour.
+- [x] `lib/idb-cache.ts` et la dépendance `idb` supprimés.
+- [x] `viewportFit: 'cover'` ; zones sûres iOS sur le header, la barre basse, le FAB, les invites d'installation et de mise à jour.
+- [x] Icônes de notification en PNG (worker, `lib/notifications.ts`, route `send`, cron).
+- [x] `client.navigate()` protégé avec repli `openWindow`.
+- [x] `public/manifest.json` : `id`, `scope`, `display_override`, `orientation: any`, `background_color` aligné sur le fond de page, raccourcis en PNG 96 px (générés par `scripts/generate-icons.mjs`). Pas de `screenshots` (à produire à la main).
+- [x] `themeColor` par thème (`media`).
+- [x] `app/offline/page.tsx` : bouton « Réessayer », état en ligne/hors-ligne, liste des pages réellement en cache (`components/offline/CachedPagesList.tsx`).
+- [x] Matchers par fonction (`url.origin`, `request.mode === 'navigate'`) pour toutes les règles de pages.
 
 ### 3.3 Architecture et code — ÉLEVÉ / MOYEN / FAIBLE
 
-- [ ] `components/layout/Header.tsx:6` : charger `GlobalSearch` en `next/dynamic` au premier clic ; construire un index de recherche léger (titre, description, lien) côté serveur au lieu d'importer `lib/fiches-secours.ts` entier dans le layout.
-- [ ] `instrumentation-client.ts:9-10` : charger Replay à l'idle via `Sentry.addIntegration(Sentry.replayIntegration())` ou le retirer (107 kB gzip de JS partagé).
-- [ ] Retirer `'use client'` des composants sans interactivité : `components/ui/Card.tsx`, `components/ui/Button.tsx`, `components/layout/Footer.tsx`, `components/home/SeasonalTips.tsx`, `components/home/EmergencyNumbers.tsx`, `components/alertes/VigilanceMap.tsx` ; et des modules non-React `lib/theme.ts`, `lib/geolocation.ts`, `lib/favorites-storage.ts`, `lib/checklist-storage.ts`, `lib/notifications.ts`.
-- [ ] Pages entièrement client à découper (feuille interactive en enfant, page serveur avec `metadata`) : `app/urgences/page.tsx`, `app/defibrillateurs/page.tsx`, `app/contact/page.tsx`, `app/cgu/page.tsx`, `app/confidentialite/page.tsx`, `app/mentions-legales/page.tsx`, `app/alertes/[id]/page.tsx`.
-- [ ] `components/alertes/DepartmentSelector.tsx:134,193` : dériver `isGeolocationSupported()` dans un `useEffect` (risque d'erreur d'hydratation).
-- [ ] `components/alertes/AlertsList.tsx:41-87` : `AbortController`, garde contre les réponses obsolètes, séparer `loading` de `refreshing`.
-- [ ] `app/defibrillateurs/page.tsx:63,81-86` : supprimer le double fetch au premier geolocate, retirer le `eslint-disable`.
-- [ ] `setTimeout` sans nettoyage : `components/urgences/FavoriteButton.tsx:27`, `components/urgences/ShareLocation.tsx:101`, `components/layout/InstallPrompt.tsx:52`.
-- [ ] `components/layout/Header.tsx:59` : `useCallback` sur `onClose` passé à `GlobalSearch`.
-- [ ] Types : remplacer les `response.json()` non typés (`alerts:74,112,143,186,236`, `cron:51`, `fire-risk:189`, `AlertsList:51,73`, `AlertBanner:47`, `defibrillateurs/page:36`) par des type guards ou schémas Zod ; supprimer les types morts de `lib/types/api-responses.ts:94-172` ; partager `Defibrillateur` via `lib/types`.
-- [ ] `app/api/vigilance/route.ts:256-265` : remplacer les six `!` par une construction typée.
-- [ ] Supprimer le code mort : `lib/meteo-france.ts`, `components/ui/Button.tsx`, `app/api/widget/emergency/route.ts`, `app/api/notifications/vapid-key/route.ts` (le client lit `NEXT_PUBLIC_VAPID_PUBLIC_KEY`), `components/urgences/FavoriteHeaderButton.tsx`, exports orphelins (`getSavedLocation`, `resetAllChecklists`, `getOverallProgress`, `getConseilsSaisonActuelle`, `getSaisonsSummary`, `unsubscribeFromPush`, `effectiveTheme`).
-- [ ] Barrels `components/*/index.ts` : supprimer ceux qui ne sont pas importés (`alertes`, `home`, `prevention`, `secours`, `urgences`) ou les compléter.
-- [ ] Créer `lib/nav.ts` (navigation définie dans `BottomNav`, `SideNav`, `Header`, `GlobalSearch`), `lib/ui-tokens.ts` (couleurs de niveau et d'urgence définies à cinq endroits), `lib/storage-keys.ts` (clé `'secucitoyen_department'` en dur dans trois fichiers).
-- [ ] Consommer `lib/numeros-urgence.ts` dans `components/home/EmergencyNumbers.tsx`, `components/layout/EmergencyFab.tsx`, `app/offline/page.tsx` au lieu de recopier les numéros.
-- [ ] `lib/geolocation.ts:174-179` : retirer l'écriture localStorage de `getCurrentPosition()` (effet de bord) ; factoriser la géolocalisation dupliquée dans `LocationFinder.tsx:43-83` et `ShareLocation.tsx:17-57` en un hook `useGeolocation()`.
-- [ ] styled-jsx (`EmergencyFab.tsx:120-153`, `GlobalSearch.tsx:178-192`, illustrations) → `keyframes`/`animation` dans `tailwind.config.ts` ; supprimer le doublon `.animate-slide-up` (`globals.css:51` vs `EmergencyFab:131`).
-- [ ] `app/globals.css:33-37` : scoper `transition-colors` à une classe posée pendant le changement de thème au lieu de `*`.
-- [ ] `worker/index.js:76` : retirer le `console.log`.
-- [ ] Nombres magiques : constantes partagées pour `5 * 60 * 1000`, `3000`, 7 jours.
+- [x] `GlobalSearch` chargé en `next/dynamic` au premier clic (l'index complet du contenu ne pèse plus sur le layout) ; `onClose` stabilisé par `useCallback`.
+- [ ] Sentry Replay : configuration inchangée (`replaysOnErrorSampleRate: 1`), l'intégration n'est pas ajoutée explicitement ; à mesurer avec `npm run analyze` avant de trancher.
+- [x] `'use client'` retiré de `Card`, `Footer`, `SeasonalTips`, `EmergencyNumbers`, `VigilanceMap` et des modules `lib/*` non-React ; `Button.tsx` supprimé.
+- [x] Pages découpées en page serveur (avec `metadata` et `canonical`) + feuille client : `urgences` (page serveur directe), `defibrillateurs` (`components/defibrillateurs/DefibrillateursFinder.tsx`), `contact` (`components/contact/ContactForm.tsx`), `alertes/[id]` (`components/alertes/AlertDetail.tsx` + `generateMetadata`, `noindex`), `cgu`, `confidentialite`, `mentions-legales` (`noindex`), `conseils-saison` et `conseils-saison/[id]` (`generateMetadata`).
+- [x] `DepartmentSelector` : support géoloc évalué après montage (Phase 2).
+- [x] `AlertsList` : `AbortController` (une requête en vol), `loading` distinct de `refreshing`, libellés de filtres explicites.
+- [x] Recherche de DAE : une seule source de déclenchement (position + rayon), plus de double fetch, requête précédente annulée, plus de `eslint-disable`.
+- [x] `setTimeout` nettoyés (`FavoriteButton`, `ShareLocation`, `InstallPrompt`).
+- [x] Types morts de `lib/types/api-responses.ts` supprimés ; `Defibrillateur` partagé via `lib/sources/defibrillateurs.ts` ; les `response.json()` des composants passent par des vérifications (`Array.isArray`, `=== true`). Pas de Zod (dépendance évitée).
+- [x] Code mort supprimé : `lib/meteo-france.ts` (Phase 2), `lib/idb-cache.ts`, `components/ui/Button.tsx`, `app/api/widget/emergency`, `app/api/notifications/vapid-key`, `FavoriteHeaderButton`, exports orphelins (`resetAllChecklists`, `getConseilsSaisonActuelle`, `getSaisonsSummary`, `unsubscribeFromPush`, `effectiveTheme`, `getSupabase`) ; `getOverallProgress` désormais utilisé par `OverallProgress`.
+- [x] Barrels inutilisés supprimés (`alertes`, `home`, `prevention`, `secours`, `urgences`) ; `ui/index.ts` réduit à `Card`.
+- [x] `lib/nav.ts` (SideNav + menu burger), `lib/ui-tokens.ts` (urgences des fiches, priorités des check-lists, durées), `lib/storage-keys.ts` (toutes les clés localStorage), `lib/site.ts` (origine du site pour metadataBase, sitemap, robots).
+- [x] `lib/numeros-urgence.ts` consommé par `EmergencyNumbers` et `EmergencyFab` (la page hors-ligne garde ses numéros en dur, volontairement, pour ne dépendre d'aucun module).
+- [x] `getCurrentPosition()` sans effet de bord (Phase 2) ; hook `lib/hooks/useGeolocation.ts` utilisé par `LocationFinder` et `ShareLocation`.
+- [x] styled-jsx retiré du FAB et de la recherche (`keyframes`/`animation` Tailwind : `slide-up`, `slide-down`, `pulse-ring`) ; doublon `.animate-slide-up` supprimé. Les 5 illustrations gardent leur styled-jsx (animations SVG spécifiques).
+- [x] `transition-colors` global remplacé par une classe `theme-transition` posée 250 ms au changement de thème (`lib/theme.ts`).
+- [x] `console.log` du worker supprimé avec `worker/index.js`.
+- [x] Nombres magiques centralisés dans `TIMINGS` (`lib/ui-tokens.ts`).
 
 ### 3.4 Dépendances et environnement — ÉLEVÉ / FAIBLE
 
-- [ ] Migrer vers Next 15.5 LTS (ou 16) ; mettre à jour `eslint-config-next`, `eslint`, `@next/bundle-analyzer` en cohérence.
-- [ ] CI : Node 22 (`.nvmrc` + `node-version-file`) et `"engines": { "node": ">=22" }` dans `package.json`.
-- [ ] Supprimer les dépendances inutilisées : `ts-jest`, `playwright` (doublon de `@playwright/test`), `@jest/globals`, `@testing-library/user-event`, `idb` (si 3.2 supprime `idb-cache.ts`).
-- [ ] Mettre à jour : `@supabase/supabase-js`, `@sentry/nextjs`, `@playwright/test`, `jest` et `jest-environment-jsdom`, `@testing-library/*`, `sharp`.
-- [ ] `.env.local.example:3` : retirer `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` (inutilisé).
+- [x] **Next 15.5.25 + React 19.3** : `params` asynchrones sur les pages dynamiques, `withSentryConfig` importé depuis `@sentry/nextjs/config`, `eslint-config-next` et `@next/bundle-analyzer` alignés. `eslint` reste en 8 (`next lint` est déprécié en 16 : migrer vers la CLI ESLint 9 / flat config lors du passage à Next 16).
+- [x] Node 22 : `.nvmrc`, `node-version-file` en CI, `"engines": { "node": ">=22" }`.
+- [x] Supprimés : `ts-jest`, `playwright`, `@jest/globals`, `@testing-library/user-event`, `idb`, `next-pwa`. Ajoutés : `@serwist/next`, `serwist`, `@axe-core/playwright`.
+- [x] Mises à jour mineures appliquées (`@supabase/supabase-js`, `@sentry/nextjs`, `@playwright/test`, `jest`, `@testing-library/*`, `sharp`, `postcss`).
+- [x] `.env.local.example` : clé `PUBLISHABLE_DEFAULT_KEY` retirée.
+- [ ] `npm audit` : reste 8 avis (Next 15.5 : 1 modéré + `postcss` via Next ; `@serwist/next` : `browserslist`/`brace-expansion` transitifs build-time ; `js-yaml`, `fast-uri` corrigeables par `npm audit fix`). Aucun n'est exploitable à l'exécution sur Vercel ; Dependabot suivra les correctifs.
 
 ### 3.5 Tests et CI — ÉLEVÉ / MOYEN
 
-- [ ] Créer `__tests__/api/alerts.test.ts` : `fetch` mocké par URL, vérifier mapping des niveaux incendie, dédoublonnage, tri, comportement quand une source échoue ou renvoie `degraded`.
-- [ ] Extraire `parseVigilanceData` dans `lib/vigilance-parse.ts` et le tester (modèle : `lib/vigicrues-parse.ts`).
-- [ ] `app/api/notifications/send/route.ts:10-11` : lire les clés VAPID dans le handler (pas à l'import) pour rendre le chemin heureux testable ; tester emoji de niveau, `toSafeRelativePath`, purge 404/410.
-- [ ] Tester `app/api/defibrillateurs` : haversine, filtre rayon, tri, bornes, 400 sans lat/lon.
-- [ ] Tester le cron : dédoublonnage, envoi, purge, échec amont → statut non-2xx (mock Supabase chaînable).
-- [ ] `__tests__/api/cron-check-alerts.test.ts:54` : remplacer `not.toBe(401)` par une assertion réelle.
-- [ ] `__tests__/lib/favorites-storage.test.ts` et `FavoriteButton.test.tsx` : utiliser le `localStorage` de jsdom et asserter via `getFavorites()`.
-- [ ] `__tests__/lib/rate-limit.test.ts` : expiration de fenêtre et `sweep` avec fake timers.
-- [ ] `jest.config.js` : référencer `jest.setup.ts` dans `setupFilesAfterEnv` ; inclure `app/**` dans `collectCoverageFrom` ; ajouter un seuil de couverture.
-- [ ] E2E : mode hors-ligne, prompt d'installation, page Alertes avec APIs externes mockées (variable `E2E_MOCK_EXTERNAL=1` lue par `fetchWithCircuitBreaker`), mode sombre, recherche globale, persistance favoris et check-lists, page DAE avec `context.grantPermissions(['geolocation'])`.
-- [ ] Ajouter `@axe-core/playwright` et un test d'accessibilité sur les six pages principales.
-- [ ] `e2e/responsive.spec.ts:39` : remplacer `waitForTimeout(300)` par `expect.poll` ; ajouter les largeurs 768 et 1024.
-- [ ] `playwright.config.ts` : ajouter le reporter `github` ; envisager `next build && next start` en local aussi pour exercer le worker.
-- [ ] `.github/workflows/ci.yml` : supprimer le job `build` redondant (ou publier `.next` en artefact), installer uniquement Chromium et WebKit.
+- [x] Agrégateur testé (`__tests__/lib/aggregate.test.ts`, Phase 2) : mapping, plafonnement incendie, bandes AQI, dégradation, `severeOnly`, crues.
+- [x] `parseVigilanceData` exportée depuis `lib/sources/vigilance.ts` et testée (`__tests__/lib/vigilance-parse.test.ts`).
+- [ ] Route `send` : clés VAPID toujours lues à l'import ; seul le 401 est testé (le cron, qui partage la logique d'envoi, est couvert).
+- [x] Route DAE testée (`__tests__/api/defibrillateurs.test.ts`, Phase 2).
+- [x] Cron testé de bout en bout avec un mock Supabase chaînable et un rechargement du module par scénario : réclamation avant envoi, idempotence, sources non officielles et alertes sans département ignorées, endpoints expirés, 502 si Météo-France indisponible, `severeOnly`.
+- [x] `not.toBe(401)` remplacé par des assertions réelles.
+- [x] `FavoriteButton.test.tsx` : `localStorage` réel de jsdom, assertions via `getFavorites()`/`isFavorite()`, `aria-pressed` ; `EmergencyFab.test.tsx` : noms lus dans la source unique, test Échap + retour du focus (qui a révélé et fait corriger un bug réel du FAB).
+- [ ] `__tests__/lib/rate-limit.test.ts` : expiration de fenêtre et `sweep` non couverts.
+- [x] `jest.config.js` : `setupFilesAfterEnv` (jest-dom global), `app/api/**` inclus dans la couverture.
+- [ ] Seuil de couverture : non posé (à fixer après une mesure stable ; la CI affiche le résumé).
+- [x] E2E : hors-ligne (Phase 1), page Alertes et page de détail avec `/api/alerts` intercepté (`e2e/alertes.spec.ts`), bannière dégradée, menu burger clavier. Non faits : prompt d'installation, mode sombre, recherche globale, persistance favoris/check-lists, DAE avec géolocalisation mockée.
+- [x] `@axe-core/playwright` + `e2e/a11y.spec.ts` (WCAG 2.1 A/AA) sur 7 pages.
+- [x] `e2e/responsive.spec.ts` : `expect.poll` au lieu de `waitForTimeout`, largeurs 320/768/1024/1280, test tablette (FAB aligné sur la colonne de contenu).
+- [ ] `playwright.config.ts` : reporter `github` non ajouté ; en local, `next dev` reste le serveur par défaut (`E2E_PWA=1` documenté pour le worker).
+- [x] `ci.yml` : job `build` redondant supprimé, `npx playwright install --with-deps chromium webkit`, couverture affichée.
 
 ### 3.6 Accessibilité, SEO, UI — ÉLEVÉ / MOYEN / FAIBLE
 
-- [ ] Métadonnées : exporter `metadata` sur `app/urgences`, `app/defibrillateurs`, `app/contact`, `app/cgu`, `app/confidentialite`, `app/mentions-legales`, `app/conseils-saison` ; `generateMetadata` sur `app/conseils-saison/[id]` et `app/alertes/[id]`.
-- [ ] `app/urgences/[number]/page.tsx:23` et `app/prevention/[id]/page.tsx:21` : retirer le suffixe manuel « - SécuCitoyen » (doublon du template).
-- [ ] `app/secours/[id]/page.tsx:24-28` : répéter `openGraph.images` (pas de fusion profonde) et ajouter `alternates.canonical`.
-- [ ] Créer `app/not-found.tsx` en français avec liens `tel:` et retour accueil.
-- [ ] `app/sitemap.ts:5-23` : importer les modules de données au lieu de recopier les identifiants ; `lastModified` réaliste.
-- [ ] `app/page.tsx:76,80` et `app/secours/page.tsx:38` : dériver les compteurs de `fichesSecours.length` et `emergencyNumbers.length` (« 15 fiches » et « 8 numéros » sont faux).
-- [ ] `app/layout.tsx` : lien d'évitement « Aller au contenu » (`sr-only focus:not-sr-only`) et `id="main"` sur `<main>`.
-- [ ] `components/layout/BottomNav.tsx:49-65` : `aria-current="page"` via `usePathname`, `aria-label` sur `<nav>`.
-- [ ] `components/layout/Header.tsx:46-143` : `aria-expanded` / `aria-controls` sur le burger, fermeture à Échap, gestion du focus, `<Link>` au lieu de `<a>`.
-- [ ] `components/layout/GlobalSearch.tsx:17-37` : piège de focus (ou `inert` sur le reste) et retour du focus sur le bouton loupe à la fermeture.
-- [ ] `components/prevention/ChecklistContent.tsx:119-127` : `role="checkbox"` et `aria-checked` ; `components/secours/FicheContent.tsx:142-145` : `aria-pressed`.
-- [ ] `app/urgences/page.tsx:108-127` et `components/urgences/FavoriteNumbers.tsx:36-51` : sortir `FavoriteButton` du `Link` (bouton imbriqué dans un lien).
-- [ ] Cibles tactiles ≥ 44 px : `Header.tsx:36-44`, `ThemeToggle.tsx:15-20`, boutons « Fermer » de `InstallPrompt.tsx:155-163`, `NotificationPrompt.tsx:118-126`, `UpdatePrompt.tsx:67-75`, `AlertBanner.tsx:117-128`, `DepartmentSelector.tsx:194-203`.
-- [ ] `app/globals.css` : bloc `@media (prefers-reduced-motion: reduce)` global ; images fixes pour les illustrations de gestes.
-- [ ] Sous-en-têtes sticky : `top-16` sur `app/secours/[id]/page.tsx:59`, `app/urgences/[number]/page.tsx:42`, `app/alertes/[id]/page.tsx:65`, `app/prevention/[id]/page.tsx:36`.
-- [ ] `components/secours/FicheContent.tsx:9-13` : retirer `ssr: false` sur les illustrations et réserver l'espace.
-- [ ] Mode sombre : variantes `dark:` dans `FicheContent.tsx:129-176` et `ChecklistContent.tsx:92-125` (modèle : `app/urgences/[number]/page.tsx:98-137`).
-- [ ] Tablette : appliquer `max-w-app md:max-w-2xl` à `BottomNav.tsx:50`, `EmergencyFab.tsx:40`, `GlobalSearch.tsx:67`.
-- [ ] Hiérarchie de titres : marque en `<p>` dans `Header.tsx:33`, un seul `<h1>` par page.
-- [ ] `aria-hidden` sur les emojis et chevrons décoratifs (`app/page.tsx:102,140`, `secours/page.tsx:44,64`, `FicheContent.tsx:75,115,130,185,200`, `AlertsList.tsx:128,231`).
-- [ ] `components/alertes/AlertsList.tsx:240,249` : libellés via `categoryLabels` ; `app/defibrillateurs/page.tsx:78` : « 1,5 km ».
-- [ ] `components/layout/ThemeToggle.tsx:18` : `aria-label` en français.
-- [ ] `components/home/AlertBanner.tsx:102` : pas de texte sous 12 px.
+- [x] Métadonnées (`title`, `description`, `canonical`) sur toutes les pages ; `generateMetadata` sur `conseils-saison/[id]` et `alertes/[id]` ; pages légales et détail d'alerte en `noindex`.
+- [x] Suffixe « - SécuCitoyen » retiré des titres (le template du layout suffit).
+- [x] `openGraph.images` répété sur les fiches, `canonical` partout.
+- [x] `app/not-found.tsx` en français (numéros d'urgence, liens principaux).
+- [x] `app/sitemap.ts` dérivé des modules de données, `lastModified` = date de contenu ; `SITE_URL` partagé (`lib/site.ts`).
+- [x] Compteurs de l'accueil et de la page Secours dérivés des données (14 fiches, 17 numéros).
+- [x] Lien d'évitement « Aller au contenu » + `id="contenu"` sur `<main>`.
+- [x] `BottomNav` : `aria-current`, `aria-label`, SVG décoratifs masqués.
+- [x] Menu burger : `<Link>`, `aria-expanded`/`aria-controls`/`aria-haspopup`, Échap, focus sur le premier lien puis retour au bouton, fermeture à la navigation, `aria-current` (testé en e2e).
+- [x] Recherche globale : piège de focus (Tab), retour du focus au déclencheur, résultats en liste `aria-live`.
+- [x] Check-lists : `role="checkbox"` + `aria-checked`, barre de progression `role="progressbar"` ; fiches : `aria-pressed` sur les étapes, texte lu « étape faite », « Conseil : » / « Attention : » annoncés.
+- [x] Bouton favori sorti des liens (page Urgences et favoris) : plus de bouton imbriqué dans un lien.
+- [x] Cibles tactiles ≥ 44 px sur les boutons d'icône (header, thème, fermetures des invites, bannière, favoris, filtres, retours).
+- [x] `prefers-reduced-motion` respecté globalement (`globals.css`).
+- [x] Sous-en-têtes collants sous le header (`top-16`).
+- [x] Illustrations rendues côté serveur (plus de `ssr: false`), espace réservé pendant le chargement du chunk.
+- [x] Mode sombre complété dans les fiches et les check-lists (via `lib/ui-tokens.ts`).
+- [x] Tablette : barre basse, FAB et recherche alignés sur la colonne de contenu (`md:max-w-2xl`), vérifié en e2e.
+- [x] Un seul `<h1>` par page (marque en `<p>`, titres de pages en `<h1>`, sections en `<h2>`).
+- [x] `aria-hidden` sur les emojis et SVG décoratifs des pages et composants retouchés.
+- [x] Libellés de filtres explicites (« Vigilance crues », « Risque incendie (estimation) »), distances « 1,5 km ».
+- [x] `ThemeToggle` : libellé en français annonçant le thème courant et le suivant.
+- [x] Plus de texte sous 12 px dans la bannière.
+- [x] **Contrastes WCAG AA (4,5:1) corrigés** après passage d'axe-core sur les 7 pages :
+  - fonds des numéros, saisons et check-lists passés en nuance 700 quand le blanc ne passait pas sur la 500/600 (`bg-green-700`, `bg-orange-700`, `bg-pink-700`, `bg-amber-700`, `bg-rose-700`, `bg-cyan-700`, `bg-sky-700`, `bg-teal-700`) ; boutons `bg-blue-500`/`bg-green-500` → 600/700 (sélecteur de département, localisation, partage de position, FAB 112, page numéro, conseils) ;
+  - texte sombre (`text-gray-900`) sur orange et vert : `alertLevels.textOnBg`, `urgencyConfig.high.fg`, bannière d'alerte ; pastilles translucides `bg-white/20` → `bg-black/10` (les fonds clairs sous texte sombre) ;
+  - opacités et blancs translucides (`opacity-70/80/90`, `text-white/60-80`) retirés des petits textes sur fonds colorés (accueil, urgences, fiches, alertes, check-lists, FAB, favoris) ;
+  - liens et états actifs `text-accent` (orange-500, 3,2:1 sur blanc) → `text-orange-700/800` en clair, `text-orange-300/400` en sombre (menu, SideNav, BottomNav, « Voir tout », astuce du jour, progression) ; bouton d'activation des notifications et lien d'évitement en `bg-orange-700` ;
+  - gris trop clairs (`text-gray-400/500` sur `bg-gray-100`) → `text-gray-600` (pied de page, nombre d'éléments des check-lists, « ou choisir », badge de l'astuce) ; ligne « En cas d'urgence » du pied de page et mentions rouges en `text-red-700` ; texte de la carte de vigilance foncé dans les deux thèmes (le dégradé vert n'a pas de variante sombre).
+- [x] Accueil à 320 px : les quatre numéros rapides passent en grille 2 × 2 sous 640 px (« Urgences européennes » ne tenait pas dans un quart d'écran et faisait déborder la page de 25 px) ; header en `px-3` et titre `text-base` sous 640 px.
 
 ### 3.7 Contenu et documentation — MOYEN / FAIBLE
 
-- [ ] `app/contact/page.tsx:15-19` : brancher un envoi réel (route + service) ou remplacer le formulaire par un `mailto:` explicite.
-- [ ] `app/mentions-legales/page.tsx:27-32,42-47` et `app/confidentialite/page.tsx:41-46` : compléter les encadrés « Complétez cette section » (obligation LCEN).
-- [ ] `app/confidentialite/page.tsx:66` : retirer « Préférence de langue (FR/EN/IT) ».
-- [ ] `lib/numeros-urgence.ts` : ajouter 191, 197, 116 117, 116 006, 3018, 39 77 ; vérifier la mention « accessible sans carte SIM » (`:76`).
-- [ ] `README.md:112,135-136` : retirer `components/favorites/` et `data/emergency-numbers.ts` (inexistants) ; corriger « 15 fiches ».
-- [ ] `PlanAction.md:87,255-257` : corriger les statuts (2.1 et 2.4 sont annulés, 3.1 non branché, cron GitHub Actions et non Vercel).
+- [x] Formulaire de contact : ouvre la messagerie de l'utilisateur avec un e-mail prérempli (`mailto:`), texte honnête sur le fonctionnement ; plus de faux « Message envoyé ».
+- [x] Mentions légales : éditeur (projet personnel, contact), hébergeur Vercel (adresse) et Supabase renseignés ; sources de données mises à jour (OSM/ODbL, estimation incendie). **Si l'application est publiée par une personne morale**, compléter raison sociale, adresse et SIRET (commentaire `TODO` dans le fichier).
+- [x] Politique de confidentialité : ligne « langue » retirée, notifications push et géocodage décrits, rétention précisée, date mise à jour.
+- [x] Numéros ajoutés : 191 (urgence aéronautique), 197 (alerte attentat/enlèvement), 116 006 (aide aux victimes), 3018 (harcèlement numérique), 39 77 (maltraitance personnes âgées/handicapées). 116 117 non ajouté (permanence des soins non déployée dans tous les départements). Mention « même sans carte SIM » retirée des pages Urgences et Accueil.
+- [x] README : structure du projet, stack (Next 15, Serwist), sources de données, compteurs, tests.
+- [x] PlanAction.md : statuts corrigés et renvoi vers ce fichier.
 
 ---
 

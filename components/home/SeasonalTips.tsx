@@ -54,7 +54,7 @@ export default function SeasonalTips() {
         <span className="text-2xl">{saison.icon}</span>
         <div className="text-white">
           <p className="text-sm font-medium">{saison.nom} - {saison.conseils.length} conseils</p>
-          <p className="text-xs text-white/80">Conseils adaptés à la saison actuelle</p>
+          <p className="text-xs text-white">Conseils adaptés à la saison actuelle</p>
         </div>
       </div>
     </section>

@@ -120,7 +120,7 @@ export default function DepartmentSelector() {
             <button
               onClick={handleGeolocate}
               disabled={isLocating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 min-h-11 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors"
             >
               {isLocating ? (
                 <>
@@ -145,7 +145,7 @@ export default function DepartmentSelector() {
           {/* Séparateur */}
           <div className="flex items-center gap-2">
             <div className="flex-1 h-px bg-gray-200 dark:bg-slate-600" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">ou choisir</span>
+            <span className="text-xs text-gray-600 dark:text-gray-300">ou choisir</span>
             <div className="flex-1 h-px bg-gray-200 dark:bg-slate-600" />
           </div>
 
@@ -189,7 +189,7 @@ export default function DepartmentSelector() {
       ) : (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm font-medium flex items-center gap-1">
+            <span className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center gap-1">
               {isAutoLocated && (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

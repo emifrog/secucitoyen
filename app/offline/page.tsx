@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import CachedPagesList from '@/components/offline/CachedPagesList';
 
 export const metadata: Metadata = {
   title: 'Hors connexion',
+  robots: { index: false, follow: false },
 };
 
 // Numéros affichés en dur : les liens tel: fonctionnent même sans réseau data.
@@ -35,16 +37,15 @@ export default function OfflinePage() {
               </span>
               <span className="flex flex-col">
                 <span className="font-semibold">{label}</span>
-                <span className="text-sm text-gray-300">{desc}</span>
+                <span className="text-sm text-gray-200">{desc}</span>
               </span>
             </a>
           </li>
         ))}
       </ul>
 
-      <p className="text-center text-gray-400 text-sm mt-8">
-        Les fiches de secours consultées récemment restent accessibles hors ligne.
-      </p>
+      {/* Réessayer + pages réellement en cache (fiches, numéros) */}
+      <CachedPagesList />
     </div>
   );
 }
