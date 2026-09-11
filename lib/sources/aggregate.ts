@@ -1,5 +1,5 @@
 import type { UnifiedAlert } from '@/lib/types/api-responses';
-import { DEPARTEMENTS_RISQUE_INCENDIE } from '@/lib/departements';
+import { DEPARTEMENTS_RISQUE_INCENDIE, getDepartementNom } from '@/lib/departements';
 import { fetchVigilance, VIGILANCE_SOURCE } from './vigilance';
 import { fetchAirQuality, AIR_QUALITY_SOURCE } from './air-quality';
 import { fetchVigicrues, VIGICRUES_SOURCE } from './vigicrues';
@@ -188,20 +188,27 @@ export async function aggregateAlerts(opts: AggregateOptions = {}): Promise<Aggr
     note(r.source, r.degraded ? 'degraded' : 'ok');
     for (const a of r.items) {
       if (a.niveau === 'vert') continue;
-      allAlerts.push({
-        id: a.id,
-        type: 'crues',
-        category: 'inondation',
-        level: a.niveau,
-        title: `Vigilance crues - ${a.cours_eau}`,
-        description: `Tronçon : ${a.troncon}`,
-        department: a.departement,
-        departmentCode: a.departementCode,
-        updatedAt: r.updatedAt,
-        source: r.source,
-        advice: CRUES_ADVICE,
-        icon: '🌊',
-      });
+      // Un tronçon traverse souvent plusieurs départements. En vue nationale on
+      // émet une alerte par département concerné : sans cela, le cron ne
+      // notifierait que les abonnés du premier d'entre eux. En vue
+      // départementale, seule la cible demandée est conservée.
+      const cibles = dept ? [dept] : a.departements.length > 0 ? a.departements : [''];
+      for (const code of cibles) {
+        allAlerts.push({
+          id: code ? `${a.id}-${code}` : a.id,
+          type: 'crues',
+          category: 'inondation',
+          level: a.niveau,
+          title: `Vigilance crues - ${a.cours_eau}`,
+          description: `Tronçon : ${a.troncon}`,
+          department: code ? getDepartementNom(code) ?? '' : '',
+          departmentCode: code,
+          updatedAt: r.updatedAt,
+          source: r.source,
+          advice: CRUES_ADVICE,
+          icon: '🌊',
+        });
+      }
     }
   } else {
     note(VIGICRUES_SOURCE, 'degraded');

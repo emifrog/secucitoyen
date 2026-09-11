@@ -40,8 +40,10 @@ function upstream(overrides: Partial<Record<'vigilance' | 'air' | 'vigicrues' | 
       jsonResponse({
         type: 'FeatureCollection',
         features: [
-          { type: 'Feature', geometry: { type: 'Point', coordinates: [] },
-            properties: { NivSituVigiCruEnt: 3, CdEntVigiCru: '30A1', NomEntVigiCru: 'Le Gardon à Anduze', NomCoursEau: 'Le Gardon' } },
+          // Tronçon réel du Gard (le GeoJSON ne porte aucun code département :
+          // il est résolu depuis lib/data/vigicrues-troncons.json).
+          { type: 'Feature', geometry: { type: 'MultiLineString', coordinates: [] },
+            properties: { NivInfViCr: 3, CdEntCru: 'GA1', lbentcru: 'Cèze amont' } },
         ],
       }),
     meteo: async () =>

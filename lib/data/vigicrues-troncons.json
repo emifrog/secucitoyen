@@ -1,0 +1,2176 @@
+{
+  "generatedAt": "2026-09-11T07:46:05.774Z",
+  "source": "https://www.vigicrues.gouv.fr/services/1/InfoVigiCru.geojson",
+  "method": "12 sommets par tronçon, géocodage inverse api-adresse.data.gouv.fr",
+  "troncons": {
+    "AD1": {
+      "nom": "Adour amont - Echez",
+      "departements": [
+        "65"
+      ]
+    },
+    "AD10": {
+      "nom": "Nivelle",
+      "departements": [
+        "64"
+      ]
+    },
+    "AD17": {
+      "nom": "Adour moyen",
+      "departements": [
+        "32",
+        "40"
+      ]
+    },
+    "AD19": {
+      "nom": "Gave d'Oloron",
+      "departements": [
+        "40",
+        "64"
+      ]
+    },
+    "AD2": {
+      "nom": "Arros - Bouès",
+      "departements": [
+        "32",
+        "65"
+      ]
+    },
+    "AD20": {
+      "nom": "Gave de Pau béarnais",
+      "departements": [
+        "40",
+        "64"
+      ]
+    },
+    "AD21": {
+      "nom": "Gave de Pau bigourdan",
+      "departements": [
+        "65"
+      ]
+    },
+    "AD22": {
+      "nom": "Confluence Adour - Nive",
+      "departements": [
+        "40",
+        "64"
+      ]
+    },
+    "AD23": {
+      "nom": "Bec du Gave",
+      "departements": [
+        "40",
+        "64"
+      ]
+    },
+    "AD24": {
+      "nom": "Adour des barthes",
+      "departements": [
+        "40"
+      ]
+    },
+    "AD5": {
+      "nom": "Midouze",
+      "departements": [
+        "40"
+      ]
+    },
+    "AD8": {
+      "nom": "Saison",
+      "departements": [
+        "64"
+      ]
+    },
+    "AD9": {
+      "nom": "Nive",
+      "departements": [
+        "64"
+      ]
+    },
+    "AL10": {
+      "nom": "Allier brivadois",
+      "departements": [
+        "43",
+        "63"
+      ]
+    },
+    "AL11": {
+      "nom": "Haut Allier",
+      "departements": [
+        "43"
+      ]
+    },
+    "AL12": {
+      "nom": "Dore amont",
+      "departements": [
+        "63"
+      ]
+    },
+    "AL13": {
+      "nom": "Dore aval",
+      "departements": [
+        "63"
+      ]
+    },
+    "AL14": {
+      "nom": "Couzes",
+      "departements": [
+        "63"
+      ]
+    },
+    "AL15": {
+      "nom": "Sioule intermédiaire",
+      "departements": [
+        "03",
+        "63"
+      ]
+    },
+    "AL16": {
+      "nom": "Sioule aval",
+      "departements": [
+        "03"
+      ]
+    },
+    "AL2": {
+      "nom": "Alagnon",
+      "departements": [
+        "15",
+        "43",
+        "63"
+      ]
+    },
+    "AL3": {
+      "nom": "Allier entre Alagnon et Dore",
+      "departements": [
+        "63"
+      ]
+    },
+    "AL5": {
+      "nom": "Allier entre Dore et Sioule",
+      "departements": [
+        "03"
+      ]
+    },
+    "AL6": {
+      "nom": "Sioulet - Sioule amont",
+      "departements": [
+        "63"
+      ]
+    },
+    "AL8": {
+      "nom": "Allier à l'aval de la Sioule",
+      "departements": [
+        "03",
+        "18",
+        "58"
+      ]
+    },
+    "AN11": {
+      "nom": "Isère moyenne",
+      "departements": [
+        "38",
+        "73"
+      ]
+    },
+    "AN12": {
+      "nom": "Isère grenobloise",
+      "departements": [
+        "38"
+      ]
+    },
+    "AN13": {
+      "nom": "Isère-Tarentaise",
+      "departements": [
+        "73"
+      ]
+    },
+    "AN14": {
+      "nom": "Isère Haute-Combe de Savoie",
+      "departements": [
+        "73"
+      ]
+    },
+    "AN20": {
+      "nom": "Isère aval",
+      "departements": [
+        "26",
+        "38"
+      ]
+    },
+    "AN30": {
+      "nom": "Drac aval",
+      "departements": [
+        "38"
+      ]
+    },
+    "AN31": {
+      "nom": "Romanche aval",
+      "departements": [
+        "38"
+      ]
+    },
+    "AN40": {
+      "nom": "Arc aval",
+      "departements": [
+        "73"
+      ]
+    },
+    "AN41": {
+      "nom": "Arc moyen",
+      "departements": [
+        "73"
+      ]
+    },
+    "AN42": {
+      "nom": "Arve médian",
+      "departements": [
+        "74"
+      ]
+    },
+    "AN43": {
+      "nom": "Arve aval",
+      "departements": [
+        "74"
+      ]
+    },
+    "AN44": {
+      "nom": "Giffre aval",
+      "departements": [
+        "74"
+      ]
+    },
+    "AP1": {
+      "nom": "Sambre",
+      "departements": [
+        "59"
+      ]
+    },
+    "AP12": {
+      "nom": "Hem",
+      "departements": [
+        "62"
+      ]
+    },
+    "AP13": {
+      "nom": "Lys amont - Laquette",
+      "departements": [
+        "62"
+      ]
+    },
+    "AP14": {
+      "nom": "Lys plaine",
+      "departements": [
+        "59",
+        "62"
+      ]
+    },
+    "AP15": {
+      "nom": "Lawe - Clarence amont",
+      "departements": [
+        "62"
+      ]
+    },
+    "AP16": {
+      "nom": "Canche",
+      "departements": [
+        "62"
+      ]
+    },
+    "AP2": {
+      "nom": "Helpe mineure",
+      "departements": [
+        "59"
+      ]
+    },
+    "AP3": {
+      "nom": "Helpe majeure",
+      "departements": [
+        "59"
+      ]
+    },
+    "AP4": {
+      "nom": "Solre",
+      "departements": [
+        "59"
+      ]
+    },
+    "AP5": {
+      "nom": "Aa",
+      "departements": [
+        "62"
+      ]
+    },
+    "AP6": {
+      "nom": "Liane",
+      "departements": [
+        "62"
+      ]
+    },
+    "AP7": {
+      "nom": "Somme",
+      "departements": [
+        "80"
+      ]
+    },
+    "BT1": {
+      "nom": "Morlaix",
+      "departements": [
+        "29"
+      ]
+    },
+    "BT10": {
+      "nom": "Meu",
+      "departements": [
+        "35"
+      ]
+    },
+    "BT11": {
+      "nom": "Ille - Illet",
+      "departements": [
+        "35"
+      ]
+    },
+    "BT12": {
+      "nom": "Seiche",
+      "departements": [
+        "35"
+      ]
+    },
+    "BT13": {
+      "nom": "Leguer - Guindy - Jaudy",
+      "departements": [
+        "22"
+      ]
+    },
+    "BT14": {
+      "nom": "Trieux - Leff - Gouët",
+      "departements": [
+        "22"
+      ]
+    },
+    "BT15": {
+      "nom": "Gouessant - Arguenon - Rance",
+      "departements": [
+        "22"
+      ]
+    },
+    "BT2": {
+      "nom": "Aulne",
+      "departements": [
+        "29"
+      ]
+    },
+    "BT3": {
+      "nom": "Odet",
+      "departements": [
+        "29"
+      ]
+    },
+    "BT4": {
+      "nom": "Laïta",
+      "departements": [
+        "29",
+        "56"
+      ]
+    },
+    "BT5": {
+      "nom": "Blavet",
+      "departements": [
+        "22",
+        "56"
+      ]
+    },
+    "BT6": {
+      "nom": "Vilaine aval",
+      "departements": [
+        "35",
+        "44",
+        "56"
+      ]
+    },
+    "BT7": {
+      "nom": "Oust",
+      "departements": [
+        "22",
+        "35",
+        "56"
+      ]
+    },
+    "BT8": {
+      "nom": "Vilaine médiane",
+      "departements": [
+        "35"
+      ]
+    },
+    "BT9": {
+      "nom": "Vilaine amont",
+      "departements": [
+        "35"
+      ]
+    },
+    "CO1": {
+      "nom": "Golo aval",
+      "departements": [
+        "2B"
+      ]
+    },
+    "CO2": {
+      "nom": "Golo amont",
+      "departements": [
+        "2B"
+      ]
+    },
+    "CO3": {
+      "nom": "Tavignano aval",
+      "departements": [
+        "2B"
+      ]
+    },
+    "CO4": {
+      "nom": "Gravona amont",
+      "departements": [
+        "2A"
+      ]
+    },
+    "DO1": {
+      "nom": "Céou",
+      "departements": [
+        "24",
+        "46"
+      ]
+    },
+    "DO10": {
+      "nom": "Isle amont",
+      "departements": [
+        "24"
+      ]
+    },
+    "DO11": {
+      "nom": "Vézère amont",
+      "departements": [
+        "19"
+      ]
+    },
+    "DO12": {
+      "nom": "Vézère aval",
+      "departements": [
+        "19",
+        "24"
+      ]
+    },
+    "DO20": {
+      "nom": "Dordogne amont - Cère - Maronne",
+      "departements": [
+        "19",
+        "46"
+      ]
+    },
+    "DO21": {
+      "nom": "Estuaire Gironde",
+      "departements": [
+        "17",
+        "33"
+      ]
+    },
+    "DO22": {
+      "nom": "Confluence Garonne - Dordogne",
+      "departements": [
+        "33"
+      ]
+    },
+    "DO23": {
+      "nom": "Garonne girondine",
+      "departements": [
+        "33"
+      ]
+    },
+    "DO4": {
+      "nom": "Dordogne moyenne",
+      "departements": [
+        "24",
+        "46"
+      ]
+    },
+    "DO5": {
+      "nom": "Dordogne aval",
+      "departements": [
+        "24",
+        "33"
+      ]
+    },
+    "DO6": {
+      "nom": "Corrèze",
+      "departements": [
+        "19"
+      ]
+    },
+    "DO7": {
+      "nom": "Dronne aval",
+      "departements": [
+        "16",
+        "24",
+        "33"
+      ]
+    },
+    "DO8": {
+      "nom": "Dronne amont",
+      "departements": [
+        "24"
+      ]
+    },
+    "DO9": {
+      "nom": "Isle aval",
+      "departements": [
+        "24",
+        "33"
+      ]
+    },
+    "GA1": {
+      "nom": "Cèze amont",
+      "departements": [
+        "30"
+      ]
+    },
+    "GA10": {
+      "nom": "Rhône de Pont St Esprit à Avignon",
+      "departements": [
+        "84"
+      ]
+    },
+    "GA12": {
+      "nom": "Aygues",
+      "departements": [
+        "26",
+        "84"
+      ]
+    },
+    "GA13": {
+      "nom": "Ouvèze Provençale",
+      "departements": [
+        "84"
+      ]
+    },
+    "GA14": {
+      "nom": "Durance de Cadarache à Avignon",
+      "departements": [
+        "13"
+      ]
+    },
+    "GA17": {
+      "nom": "Ardèche amont",
+      "departements": [
+        "07"
+      ]
+    },
+    "GA2": {
+      "nom": "Cèze aval",
+      "departements": [
+        "30"
+      ]
+    },
+    "GA21": {
+      "nom": "Durance de Sisteron à Cadarache",
+      "departements": [
+        "13"
+      ]
+    },
+    "GA22": {
+      "nom": "Ardèche aval",
+      "departements": [
+        "07",
+        "30"
+      ]
+    },
+    "GA23": {
+      "nom": "Baume - Chassezac",
+      "departements": [
+        "07"
+      ]
+    },
+    "GA24": {
+      "nom": "Doux - Cance - Ay",
+      "departements": [
+        "07",
+        "26"
+      ]
+    },
+    "GA25": {
+      "nom": "Ouvèze - Eyrieux",
+      "departements": [
+        "07"
+      ]
+    },
+    "GA26": {
+      "nom": "Rhône de Valence à Pont St Esprit",
+      "departements": [
+        "07",
+        "30"
+      ]
+    },
+    "GA27": {
+      "nom": "Rhône en amont de Valence",
+      "departements": [
+        "07",
+        "26"
+      ]
+    },
+    "GA3": {
+      "nom": "Gardon d'Alès",
+      "departements": [
+        "30"
+      ]
+    },
+    "GA30": {
+      "nom": "Durance de Serre-Ponçon à Sisteron",
+      "departements": [
+        "04",
+        "05"
+      ]
+    },
+    "GA31": {
+      "nom": "Calavon - Coulon",
+      "departements": [
+        "84"
+      ]
+    },
+    "GA32": {
+      "nom": "Vistre",
+      "departements": [
+        "30"
+      ]
+    },
+    "GA4": {
+      "nom": "Gardon d'Anduze",
+      "departements": [
+        "30"
+      ]
+    },
+    "GA5": {
+      "nom": "Gardon aval",
+      "departements": [
+        "30"
+      ]
+    },
+    "GA6": {
+      "nom": "Vidourle",
+      "departements": [
+        "30",
+        "34"
+      ]
+    },
+    "GA9": {
+      "nom": "Rhône d'Avignon à la mer",
+      "departements": [
+        "13"
+      ]
+    },
+    "IF10": {
+      "nom": "Armançon",
+      "departements": [
+        "21",
+        "89"
+      ]
+    },
+    "IF11": {
+      "nom": "Seine Bassée francilienne",
+      "departements": [
+        "77"
+      ]
+    },
+    "IF12": {
+      "nom": "Loing amont - Ouanne",
+      "departements": [
+        "45",
+        "89"
+      ]
+    },
+    "IF13": {
+      "nom": "Loing aval",
+      "departements": [
+        "45",
+        "77"
+      ]
+    },
+    "IF14": {
+      "nom": "Brenne",
+      "departements": [
+        "21"
+      ]
+    },
+    "IF15": {
+      "nom": "Marne de la Ferté à Meaux",
+      "departements": [
+        "77"
+      ]
+    },
+    "IF16": {
+      "nom": "Grand Morin",
+      "departements": [
+        "51",
+        "77"
+      ]
+    },
+    "IF17": {
+      "nom": "Marne de Condé à Charenton",
+      "departements": [
+        "77",
+        "93",
+        "94"
+      ]
+    },
+    "IF18": {
+      "nom": "Seine yvelinoise",
+      "departements": [
+        "78"
+      ]
+    },
+    "IF19": {
+      "nom": "Seine euroise",
+      "departements": [
+        "27",
+        "78"
+      ]
+    },
+    "IF2": {
+      "nom": "Oise aval francilienne",
+      "departements": [
+        "78",
+        "95"
+      ]
+    },
+    "IF20": {
+      "nom": "Petit Morin",
+      "departements": [
+        "51",
+        "77"
+      ]
+    },
+    "IF21": {
+      "nom": "Almont",
+      "departements": [
+        "77"
+      ]
+    },
+    "IF22": {
+      "nom": "Yerres",
+      "departements": [
+        "77",
+        "91",
+        "94"
+      ]
+    },
+    "IF23": {
+      "nom": "Mauldre",
+      "departements": [
+        "78"
+      ]
+    },
+    "IF3": {
+      "nom": "Seine moyenne",
+      "departements": [
+        "77",
+        "91",
+        "94"
+      ]
+    },
+    "IF5": {
+      "nom": "Seine à Paris",
+      "departements": [
+        "75",
+        "78",
+        "92",
+        "93",
+        "94",
+        "95"
+      ]
+    },
+    "IF7": {
+      "nom": "Yonne aval",
+      "departements": [
+        "77",
+        "89"
+      ]
+    },
+    "IF8": {
+      "nom": "Yonne amont",
+      "departements": [
+        "89"
+      ]
+    },
+    "IF9": {
+      "nom": "Serein",
+      "departements": [
+        "21",
+        "89"
+      ]
+    },
+    "LA1": {
+      "nom": "Seudre",
+      "departements": [
+        "17"
+      ]
+    },
+    "LA12": {
+      "nom": "Charente source",
+      "departements": [
+        "16",
+        "86"
+      ]
+    },
+    "LA14": {
+      "nom": "Bandiat - Tardoire",
+      "departements": [
+        "16"
+      ]
+    },
+    "LA15": {
+      "nom": "Estuaire Charente",
+      "departements": [
+        "17"
+      ]
+    },
+    "LA17": {
+      "nom": "Boutonne amont",
+      "departements": [
+        "17"
+      ]
+    },
+    "LA18": {
+      "nom": "Sèvre niortaise aval",
+      "departements": [
+        "17",
+        "85"
+      ]
+    },
+    "LA19": {
+      "nom": "Vendée",
+      "departements": [
+        "17",
+        "85"
+      ]
+    },
+    "LA2": {
+      "nom": "Seugne",
+      "departements": [
+        "17"
+      ]
+    },
+    "LA3": {
+      "nom": "Charente aval",
+      "departements": [
+        "17"
+      ]
+    },
+    "LA4": {
+      "nom": "Boutonne aval",
+      "departements": [
+        "17"
+      ]
+    },
+    "LA5": {
+      "nom": "Sèvre niortaise amont",
+      "departements": [
+        "79",
+        "85"
+      ]
+    },
+    "LA6": {
+      "nom": "Charente moyenne",
+      "departements": [
+        "16"
+      ]
+    },
+    "LA7": {
+      "nom": "Charente amont",
+      "departements": [
+        "16"
+      ]
+    },
+    "LC105": {
+      "nom": "Loire vellave",
+      "departements": [
+        "43"
+      ]
+    },
+    "LC115": {
+      "nom": "Borne",
+      "departements": [
+        "43"
+      ]
+    },
+    "LC123": {
+      "nom": "Lignon du Velay",
+      "departements": [
+        "07",
+        "43"
+      ]
+    },
+    "LC126": {
+      "nom": "Loire forézienne",
+      "departements": [
+        "42"
+      ]
+    },
+    "LC130": {
+      "nom": "Loire charollaise",
+      "departements": [
+        "03",
+        "71"
+      ]
+    },
+    "LC134": {
+      "nom": "Arroux",
+      "departements": [
+        "71"
+      ]
+    },
+    "LC137": {
+      "nom": "Bourbince",
+      "departements": [
+        "71"
+      ]
+    },
+    "LC140": {
+      "nom": "Loire nivernaise",
+      "departements": [
+        "03",
+        "58",
+        "71"
+      ]
+    },
+    "LC145": {
+      "nom": "Besbre",
+      "departements": [
+        "03"
+      ]
+    },
+    "LC155": {
+      "nom": "Aron",
+      "departements": [
+        "58"
+      ]
+    },
+    "LC165": {
+      "nom": "Loire giennoise",
+      "departements": [
+        "45"
+      ]
+    },
+    "LC175": {
+      "nom": "Loire orléanaise",
+      "departements": [
+        "45"
+      ]
+    },
+    "LC185": {
+      "nom": "Loire blaisoise",
+      "departements": [
+        "37",
+        "41"
+      ]
+    },
+    "LC195": {
+      "nom": "Loire tourangelle",
+      "departements": [
+        "37"
+      ]
+    },
+    "LC210": {
+      "nom": "Tardes - Cher amont",
+      "departements": [
+        "03",
+        "23"
+      ]
+    },
+    "LC220": {
+      "nom": "Cher berrichon",
+      "departements": [
+        "03",
+        "18"
+      ]
+    },
+    "LC221": {
+      "nom": "Yèvre",
+      "departements": [
+        "18"
+      ]
+    },
+    "LC230": {
+      "nom": "Cher solognot",
+      "departements": [
+        "18"
+      ]
+    },
+    "LC235": {
+      "nom": "Arnon amont",
+      "departements": [
+        "18"
+      ]
+    },
+    "LC245": {
+      "nom": "Arnon aval",
+      "departements": [
+        "18"
+      ]
+    },
+    "LC255": {
+      "nom": "Théols",
+      "departements": [
+        "36"
+      ]
+    },
+    "LC265": {
+      "nom": "Sauldre amont",
+      "departements": [
+        "41"
+      ]
+    },
+    "LC275": {
+      "nom": "Sauldre aval",
+      "departements": [
+        "41"
+      ]
+    },
+    "LC285": {
+      "nom": "Cher dans le Val de Cher",
+      "departements": [
+        "37",
+        "41"
+      ]
+    },
+    "LC295": {
+      "nom": "Cher tourangeau",
+      "departements": [
+        "37"
+      ]
+    },
+    "LC315": {
+      "nom": "Indre amont",
+      "departements": [
+        "36"
+      ]
+    },
+    "LC325": {
+      "nom": "Indre berrichonne",
+      "departements": [
+        "36"
+      ]
+    },
+    "LC335": {
+      "nom": "Indre moyenne",
+      "departements": [
+        "37"
+      ]
+    },
+    "LC345": {
+      "nom": "Indre tourangelle",
+      "departements": [
+        "37"
+      ]
+    },
+    "LO10": {
+      "nom": "Moselle aval",
+      "departements": [
+        "54",
+        "57"
+      ]
+    },
+    "LO12": {
+      "nom": "Nieds",
+      "departements": [
+        "57"
+      ]
+    },
+    "LO13": {
+      "nom": "Orne",
+      "departements": [
+        "54",
+        "55",
+        "57"
+      ]
+    },
+    "LO14": {
+      "nom": "Seille",
+      "departements": [
+        "54",
+        "57"
+      ]
+    },
+    "LO15": {
+      "nom": "Meuse amont et sammielloise",
+      "departements": [
+        "55",
+        "88"
+      ]
+    },
+    "LO16": {
+      "nom": "Meuse couloir meusien",
+      "departements": [
+        "55"
+      ]
+    },
+    "LO17": {
+      "nom": "Meuse plaine ardennaise",
+      "departements": [
+        "08"
+      ]
+    },
+    "LO18": {
+      "nom": "Meuse frontalière - Semoy",
+      "departements": [
+        "08"
+      ]
+    },
+    "LO19": {
+      "nom": "Chiers amont",
+      "departements": [
+        "54",
+        "55"
+      ]
+    },
+    "LO20": {
+      "nom": "Chiers aval",
+      "departements": [
+        "08",
+        "55"
+      ]
+    },
+    "LO21": {
+      "nom": "Meurthe amont",
+      "departements": [
+        "54",
+        "88"
+      ]
+    },
+    "LO22": {
+      "nom": "Vezouze",
+      "departements": [
+        "54"
+      ]
+    },
+    "LO23": {
+      "nom": "Mortagne",
+      "departements": [
+        "54"
+      ]
+    },
+    "LO24": {
+      "nom": "Moselle amont",
+      "departements": [
+        "88"
+      ]
+    },
+    "LO25": {
+      "nom": "Moselle médiane",
+      "departements": [
+        "54"
+      ]
+    },
+    "LO26": {
+      "nom": "Madon",
+      "departements": [
+        "54",
+        "88"
+      ]
+    },
+    "LO4": {
+      "nom": "Meurthe aval",
+      "departements": [
+        "54"
+      ]
+    },
+    "ME1": {
+      "nom": "Huveaune",
+      "departements": [
+        "13",
+        "83"
+      ]
+    },
+    "ME10": {
+      "nom": "Var amont",
+      "departements": [
+        "04",
+        "06"
+      ]
+    },
+    "ME3": {
+      "nom": "Var aval",
+      "departements": [
+        "06"
+      ]
+    },
+    "ME4": {
+      "nom": "Nartuby",
+      "departements": [
+        "83"
+      ]
+    },
+    "ME5": {
+      "nom": "Argens moyen",
+      "departements": [
+        "83"
+      ]
+    },
+    "ME6": {
+      "nom": "Argens aval",
+      "departements": [
+        "83"
+      ]
+    },
+    "ME7": {
+      "nom": "Gapeau",
+      "departements": [
+        "83"
+      ]
+    },
+    "ME8": {
+      "nom": "Arc",
+      "departements": [
+        "13"
+      ]
+    },
+    "ME9": {
+      "nom": "Var moyen",
+      "departements": [
+        "06"
+      ]
+    },
+    "ML100": {
+      "nom": "Loir amont",
+      "departements": [
+        "28",
+        "41"
+      ]
+    },
+    "ML101": {
+      "nom": "Loir vendômois",
+      "departements": [
+        "41"
+      ]
+    },
+    "ML11": {
+      "nom": "Loire saumuroise",
+      "departements": [
+        "49"
+      ]
+    },
+    "ML13": {
+      "nom": "Sarthe aval",
+      "departements": [
+        "72"
+      ]
+    },
+    "ML14": {
+      "nom": "Loire aval",
+      "departements": [
+        "49"
+      ]
+    },
+    "ML15": {
+      "nom": "Loire estuaire",
+      "departements": [
+        "44"
+      ]
+    },
+    "ML16": {
+      "nom": "Lay",
+      "departements": [
+        "85"
+      ]
+    },
+    "ML17": {
+      "nom": "Sèvre Nantaise amont",
+      "departements": [
+        "85"
+      ]
+    },
+    "ML18": {
+      "nom": "Sèvre Nantaise aval",
+      "departements": [
+        "44",
+        "85"
+      ]
+    },
+    "ML2": {
+      "nom": "Loir aval",
+      "departements": [
+        "72"
+      ]
+    },
+    "ML3": {
+      "nom": "Huisne",
+      "departements": [
+        "61",
+        "72"
+      ]
+    },
+    "ML4": {
+      "nom": "Sarthe amont",
+      "departements": [
+        "61",
+        "72"
+      ]
+    },
+    "ML7": {
+      "nom": "Mayenne",
+      "departements": [
+        "49",
+        "53"
+      ]
+    },
+    "ML8": {
+      "nom": "Oudon",
+      "departements": [
+        "49",
+        "53"
+      ]
+    },
+    "ML9": {
+      "nom": "Basses Vallées Angevines",
+      "departements": [
+        "49"
+      ]
+    },
+    "MO1": {
+      "nom": "Hérault amont",
+      "departements": [
+        "34"
+      ]
+    },
+    "MO10": {
+      "nom": "Basses plaines de l'Aude",
+      "departements": [
+        "11"
+      ]
+    },
+    "MO11": {
+      "nom": "Agly",
+      "departements": [
+        "66"
+      ]
+    },
+    "MO12": {
+      "nom": "Têt",
+      "departements": [
+        "66"
+      ]
+    },
+    "MO14": {
+      "nom": "Lez",
+      "departements": [
+        "34"
+      ]
+    },
+    "MO15": {
+      "nom": "Berre",
+      "departements": [
+        "11"
+      ]
+    },
+    "MO16": {
+      "nom": "Réart",
+      "departements": [
+        "66"
+      ]
+    },
+    "MO17": {
+      "nom": "Tech",
+      "departements": [
+        "66"
+      ]
+    },
+    "MO18": {
+      "nom": "Fresquel",
+      "departements": [
+        "11"
+      ]
+    },
+    "MO2": {
+      "nom": "Hérault aval",
+      "departements": [
+        "34"
+      ]
+    },
+    "MO4": {
+      "nom": "Orb amont",
+      "departements": [
+        "34"
+      ]
+    },
+    "MO5": {
+      "nom": "Orb aval",
+      "departements": [
+        "34"
+      ]
+    },
+    "MO6": {
+      "nom": "Haute vallée de l'Aude",
+      "departements": [
+        "11"
+      ]
+    },
+    "MO7": {
+      "nom": "Vallée centrale de l'Aude",
+      "departements": [
+        "11"
+      ]
+    },
+    "MO8": {
+      "nom": "Orbieu",
+      "departements": [
+        "11"
+      ]
+    },
+    "MO9": {
+      "nom": "Cesse",
+      "departements": [
+        "11",
+        "34"
+      ]
+    },
+    "MP1": {
+      "nom": "Ariège - Hers vif",
+      "departements": [
+        "09"
+      ]
+    },
+    "MP10": {
+      "nom": "Garonne marmandaise",
+      "departements": [
+        "33",
+        "47"
+      ]
+    },
+    "MP11": {
+      "nom": "Hers Mort",
+      "departements": [
+        "31"
+      ]
+    },
+    "MP12": {
+      "nom": "Gélise - Osse - Baïse",
+      "departements": [
+        "32",
+        "47"
+      ]
+    },
+    "MP13": {
+      "nom": "Gers - Arrats",
+      "departements": [
+        "32",
+        "47"
+      ]
+    },
+    "MP14": {
+      "nom": "Aveyron - Viaur",
+      "departements": [
+        "12"
+      ]
+    },
+    "MP15": {
+      "nom": "Aveyron aval",
+      "departements": [
+        "81",
+        "82"
+      ]
+    },
+    "MP16": {
+      "nom": "Gimone - Save",
+      "departements": [
+        "31",
+        "32",
+        "82"
+      ]
+    },
+    "MP17": {
+      "nom": "Touch",
+      "departements": [
+        "31"
+      ]
+    },
+    "MP18": {
+      "nom": "Garonne toulousaine",
+      "departements": [
+        "31",
+        "82"
+      ]
+    },
+    "MP19": {
+      "nom": "Garonne volvestre",
+      "departements": [
+        "31"
+      ]
+    },
+    "MP2": {
+      "nom": "Ger - Salat",
+      "departements": [
+        "09",
+        "31"
+      ]
+    },
+    "MP3": {
+      "nom": "Arize - Lèze",
+      "departements": [
+        "09",
+        "31"
+      ]
+    },
+    "MP4": {
+      "nom": "Garonne amont - Nestes",
+      "departements": [
+        "31",
+        "65"
+      ]
+    },
+    "MP7": {
+      "nom": "Garonne agenaise",
+      "departements": [
+        "47",
+        "82"
+      ]
+    },
+    "NO1": {
+      "nom": "Seine aval",
+      "departements": [
+        "27",
+        "76"
+      ]
+    },
+    "NO10": {
+      "nom": "Dives",
+      "departements": [
+        "14"
+      ]
+    },
+    "NO11": {
+      "nom": "Orne amont",
+      "departements": [
+        "14",
+        "61"
+      ]
+    },
+    "NO14": {
+      "nom": "Vire",
+      "departements": [
+        "50"
+      ]
+    },
+    "NO2": {
+      "nom": "Epte",
+      "departements": [
+        "27",
+        "60"
+      ]
+    },
+    "NO20": {
+      "nom": "Andelle",
+      "departements": [
+        "27",
+        "76"
+      ]
+    },
+    "NO21": {
+      "nom": "Iton amont",
+      "departements": [
+        "27"
+      ]
+    },
+    "NO22": {
+      "nom": "Iton aval",
+      "departements": [
+        "27"
+      ]
+    },
+    "NO23": {
+      "nom": "Avre",
+      "departements": [
+        "27",
+        "28"
+      ]
+    },
+    "NO24": {
+      "nom": "Divette - Trottebec",
+      "departements": [
+        "50"
+      ]
+    },
+    "NO3": {
+      "nom": "Eure amont",
+      "departements": [
+        "28"
+      ]
+    },
+    "NO30": {
+      "nom": "Orne moyenne et aval",
+      "departements": [
+        "14"
+      ]
+    },
+    "NO31": {
+      "nom": "Noireau",
+      "departements": [
+        "14",
+        "61"
+      ]
+    },
+    "NO40": {
+      "nom": "Touques - Orbiquet - Calonne",
+      "departements": [
+        "14"
+      ]
+    },
+    "NO50": {
+      "nom": "Eure moyenne et aval",
+      "departements": [
+        "27",
+        "28"
+      ]
+    },
+    "NO6": {
+      "nom": "Risle amont",
+      "departements": [
+        "27",
+        "61"
+      ]
+    },
+    "NO7": {
+      "nom": "Risle aval",
+      "departements": [
+        "27"
+      ]
+    },
+    "NO8": {
+      "nom": "Charentonne - Guiel",
+      "departements": [
+        "27"
+      ]
+    },
+    "OA1": {
+      "nom": "Aisne amont",
+      "departements": [
+        "51"
+      ]
+    },
+    "OA10": {
+      "nom": "Aisne Ardennaise",
+      "departements": [
+        "08"
+      ]
+    },
+    "OA11": {
+      "nom": "Aisne Vaux",
+      "departements": [
+        "02",
+        "08"
+      ]
+    },
+    "OA12": {
+      "nom": "Oise amont",
+      "departements": [
+        "02"
+      ]
+    },
+    "OA13": {
+      "nom": "Serre",
+      "departements": [
+        "02"
+      ]
+    },
+    "OA14": {
+      "nom": "Marque",
+      "departements": [
+        "59"
+      ]
+    },
+    "OA15": {
+      "nom": "Rhonelle",
+      "departements": [
+        "59"
+      ]
+    },
+    "OA5": {
+      "nom": "Oise moyenne",
+      "departements": [
+        "02",
+        "60"
+      ]
+    },
+    "OA6": {
+      "nom": "Oise aval isarienne",
+      "departements": [
+        "60"
+      ]
+    },
+    "OA7": {
+      "nom": "Thérain",
+      "departements": [
+        "60"
+      ]
+    },
+    "OA9": {
+      "nom": "Aisne aval",
+      "departements": [
+        "02",
+        "60"
+      ]
+    },
+    "RS100": {
+      "nom": "Saône de la Seille à Lyon",
+      "departements": [
+        "01",
+        "69"
+      ]
+    },
+    "RS11": {
+      "nom": "Saône à Lyon",
+      "departements": [
+        "69"
+      ]
+    },
+    "RS12": {
+      "nom": "Bas Rhône en amont de l'Isère",
+      "departements": [
+        "07",
+        "38",
+        "69"
+      ]
+    },
+    "RS130": {
+      "nom": "Haut Rhône en amont du Guiers",
+      "departements": [
+        "01",
+        "73",
+        "74"
+      ]
+    },
+    "RS131": {
+      "nom": "Haut Rhône du Guiers à l'Ain",
+      "departements": [
+        "01",
+        "38"
+      ]
+    },
+    "RS14": {
+      "nom": "Haut Rhône en aval de l'Ain",
+      "departements": [
+        "01",
+        "69"
+      ]
+    },
+    "RS160": {
+      "nom": "Gier",
+      "departements": [
+        "42",
+        "69"
+      ]
+    },
+    "RS17": {
+      "nom": "Allan",
+      "departements": [
+        "25",
+        "90"
+      ]
+    },
+    "RS18": {
+      "nom": "Savoureuse",
+      "departements": [
+        "25",
+        "90"
+      ]
+    },
+    "RS20": {
+      "nom": "Ognon en amont de la Linotte",
+      "departements": [
+        "70"
+      ]
+    },
+    "RS201": {
+      "nom": "Saône en amont de la Lanterne",
+      "departements": [
+        "70",
+        "88"
+      ]
+    },
+    "RS202": {
+      "nom": "Saône de la Lanterne à l'Ognon",
+      "departements": [
+        "70"
+      ]
+    },
+    "RS21": {
+      "nom": "Ognon en aval de la Linotte",
+      "departements": [
+        "25",
+        "39",
+        "70"
+      ]
+    },
+    "RS23": {
+      "nom": "Ouche",
+      "departements": [
+        "21"
+      ]
+    },
+    "RS31": {
+      "nom": "Doubs en amont de l'Arcier",
+      "departements": [
+        "25"
+      ]
+    },
+    "RS32": {
+      "nom": "Doubs de l'Arcier à la Loue",
+      "departements": [
+        "25"
+      ]
+    },
+    "RS41": {
+      "nom": "Loue",
+      "departements": [
+        "25"
+      ]
+    },
+    "RS50": {
+      "nom": "Ain",
+      "departements": [
+        "01"
+      ]
+    },
+    "RS6": {
+      "nom": "Seille",
+      "departements": [
+        "71"
+      ]
+    },
+    "RS70": {
+      "nom": "Doubs en aval de la Loue",
+      "departements": [
+        "71"
+      ]
+    },
+    "RS8": {
+      "nom": "Saône de l'Ognon au Doubs",
+      "departements": [
+        "21",
+        "71"
+      ]
+    },
+    "RS90": {
+      "nom": "Saône du Doubs à la Seille",
+      "departements": [
+        "71"
+      ]
+    },
+    "SA1": {
+      "nom": "Sarre amont",
+      "departements": [
+        "57",
+        "67"
+      ]
+    },
+    "SA10": {
+      "nom": "Fecht",
+      "departements": [
+        "68"
+      ]
+    },
+    "SA11": {
+      "nom": "Zorn - Zinsel",
+      "departements": [
+        "67"
+      ]
+    },
+    "SA12": {
+      "nom": "Moder",
+      "departements": [
+        "67"
+      ]
+    },
+    "SA13": {
+      "nom": "Rhin GCA",
+      "departements": [
+        "68"
+      ]
+    },
+    "SA14": {
+      "nom": "Rhin canalisé amont",
+      "departements": [
+        "67"
+      ]
+    },
+    "SA15": {
+      "nom": "Rhin canalisé aval",
+      "departements": [
+        "67"
+      ]
+    },
+    "SA16": {
+      "nom": "Rhin courant libre",
+      "departements": [
+        "67"
+      ]
+    },
+    "SA2": {
+      "nom": "Sarre moyenne - Eichel",
+      "departements": [
+        "57"
+      ]
+    },
+    "SA3": {
+      "nom": "Sarre aval - Blies",
+      "departements": [
+        "57"
+      ]
+    },
+    "SA4": {
+      "nom": "Ill amont - Largue",
+      "departements": [
+        "68"
+      ]
+    },
+    "SA5": {
+      "nom": "Ill moyenne - Lauch",
+      "departements": [
+        "68"
+      ]
+    },
+    "SA6": {
+      "nom": "Ill intermédiaire - Giessen",
+      "departements": [
+        "67",
+        "68"
+      ]
+    },
+    "SA7": {
+      "nom": "Ill aval - Bruche",
+      "departements": [
+        "67"
+      ]
+    },
+    "SA8": {
+      "nom": "Thur",
+      "departements": [
+        "68"
+      ]
+    },
+    "SA9": {
+      "nom": "Doller",
+      "departements": [
+        "68"
+      ]
+    },
+    "SM10": {
+      "nom": "Aube amont",
+      "departements": [
+        "10"
+      ]
+    },
+    "SM11": {
+      "nom": "Aube aval",
+      "departements": [
+        "10",
+        "51"
+      ]
+    },
+    "SM12": {
+      "nom": "Saulx amont",
+      "departements": [
+        "51",
+        "55"
+      ]
+    },
+    "SM13": {
+      "nom": "Saulx aval",
+      "departements": [
+        "51"
+      ]
+    },
+    "SM14": {
+      "nom": "Ornain",
+      "departements": [
+        "51",
+        "55"
+      ]
+    },
+    "SM15": {
+      "nom": "Marne moyenne",
+      "departements": [
+        "51"
+      ]
+    },
+    "SM16": {
+      "nom": "Marne champenoise",
+      "departements": [
+        "02",
+        "51",
+        "77"
+      ]
+    },
+    "SM3": {
+      "nom": "Marne amont",
+      "departements": [
+        "52"
+      ]
+    },
+    "SM5": {
+      "nom": "Marne Der",
+      "departements": [
+        "52"
+      ]
+    },
+    "SM7": {
+      "nom": "Seine Bassée champenoise",
+      "departements": [
+        "10",
+        "51"
+      ]
+    },
+    "SM8": {
+      "nom": "Seine amont",
+      "departements": [
+        "10",
+        "21"
+      ]
+    },
+    "SM9": {
+      "nom": "Seine troyenne",
+      "departements": [
+        "10",
+        "51"
+      ]
+    },
+    "TL1": {
+      "nom": "Agout - Thoré",
+      "departements": [
+        "81"
+      ]
+    },
+    "TL10": {
+      "nom": "Lot amont - Truyère",
+      "departements": [
+        "12",
+        "48"
+      ]
+    },
+    "TL11": {
+      "nom": "Lot moyen",
+      "departements": [
+        "12",
+        "46"
+      ]
+    },
+    "TL12": {
+      "nom": "Célé",
+      "departements": [
+        "46"
+      ]
+    },
+    "TL13": {
+      "nom": "Lot aval",
+      "departements": [
+        "46",
+        "47"
+      ]
+    },
+    "TL3": {
+      "nom": "Haut Tarn",
+      "departements": [
+        "12",
+        "48"
+      ]
+    },
+    "TL4": {
+      "nom": "Dourdou - Sorgues - Rance",
+      "departements": [
+        "12",
+        "81"
+      ]
+    },
+    "TL5": {
+      "nom": "Tarn moyen",
+      "departements": [
+        "12",
+        "81"
+      ]
+    },
+    "TL9": {
+      "nom": "Tarn aval",
+      "departements": [
+        "31",
+        "81",
+        "82"
+      ]
+    },
+    "VT10": {
+      "nom": "Thouet amont",
+      "departements": [
+        "79"
+      ]
+    },
+    "VT11": {
+      "nom": "Thouet aval",
+      "departements": [
+        "49",
+        "79"
+      ]
+    },
+    "VT12": {
+      "nom": "Creuse amont",
+      "departements": [
+        "23",
+        "36"
+      ]
+    },
+    "VT2": {
+      "nom": "Vienne tourangelle",
+      "departements": [
+        "37"
+      ]
+    },
+    "VT3": {
+      "nom": "Vienne - Bec des Deux Eaux",
+      "departements": [
+        "37",
+        "86"
+      ]
+    },
+    "VT4": {
+      "nom": "Clain",
+      "departements": [
+        "86"
+      ]
+    },
+    "VT5": {
+      "nom": "Vienne médiane",
+      "departements": [
+        "86"
+      ]
+    },
+    "VT6": {
+      "nom": "Vienne limousine",
+      "departements": [
+        "16",
+        "87"
+      ]
+    },
+    "VT7": {
+      "nom": "Creuse - Bec des Deux Eaux",
+      "departements": [
+        "37",
+        "86"
+      ]
+    },
+    "VT8": {
+      "nom": "Gartempe",
+      "departements": [
+        "86",
+        "87"
+      ]
+    },
+    "VT9": {
+      "nom": "Creuse médiane",
+      "departements": [
+        "36"
+      ]
+    }
+  }
+}

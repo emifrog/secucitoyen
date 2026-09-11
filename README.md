@@ -204,16 +204,19 @@ Réponse :
 {
   "alerts": [
     {
-      "id": "vigicrues-30A",
-      "troncon": "Le Gardon à Anduze",
+      "id": "vigicrues-AL2",
+      "troncon": "Alagnon",
       "niveau": "orange",
-      "cours_eau": "Le Gardon",
-      "departement": "Gard",
-      "departementCode": "30"
+      "cours_eau": "Alagnon",
+      "departements": ["15", "43", "63"],
+      "departement": "Cantal",
+      "departementCode": "15"
     }
   ],
-  "count": 2,
-  "source": "Vigicrues - Ministère de la Transition écologique"
+  "count": 1,
+  "totalNational": 1,
+  "source": "Vigicrues - Ministère de la Transition écologique",
+  "updatedAt": "2026-09-10T13:56:17+00:00"
 }
 ```
 
@@ -309,12 +312,19 @@ Les notifications push alertent l'utilisateur en cas de vigilance orange ou roug
 |------|--------|-----------|
 | Vigilance météo | Météo-France via Opendatasoft | 5 min |
 | Vigilance crues | Vigicrues (Ministère Transition écologique) | 5 min |
+| Départements des tronçons de crue | Base Adresse Nationale, table pré-calculée (`lib/data/vigicrues-troncons.json`) | régénérée à la demande |
 | Qualité de l'air | Open-Meteo Air Quality (indice européen, CAMS) | 30 min |
 | Risque incendie | **Estimation SécuCitoyen** (indice simplifié, non officiel, plafonné à orange, jamais poussé en notification) | 30 min |
 | Défibrillateurs | OpenStreetMap via OpenDataSoft (`osm-france-defibrillator`, ODbL) | 1 heure |
 | Département depuis la position | geo.api.gouv.fr | 24 h |
 
 Seules les sources officielles (Météo-France, Vigicrues) peuvent déclencher une notification push ; en cas d'indisponibilité d'une source, aucune donnée n'est simulée (drapeau `degraded`).
+
+Le GeoJSON Vigicrues ne porte aucun code département et ses codes de tronçon sont des
+acronymes de territoire (`CO1`, `ML101`) : les départements traversés sont pré-calculés
+depuis la géométrie officielle par `node scripts/build-vigicrues-departements.mjs`, à
+relancer quand Vigicrues redécoupe ses tronçons. 127 des 337 tronçons traversent
+plusieurs départements ; une alerte est alors émise pour chacun d'eux.
 
 ## Contenu
 

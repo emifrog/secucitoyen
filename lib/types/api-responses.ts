@@ -8,8 +8,18 @@
 export interface VigicruesGeoJSON {
   type: 'FeatureCollection';
   features: VigicruesFeature[];
+  /** Référence du bulletin en cours. */
+  RefInfoVigiCru?: string;
+  /** Date/heure de publication du bulletin (ISO 8601). */
+  DtHrInfoVigiCru?: string;
 }
 
+/**
+ * Un tronçon de vigilance crues. Le service en ligne
+ * (`/services/1/InfoVigiCru.geojson`) et l'API v1.1 documentée nomment les
+ * mêmes informations différemment : les deux jeux de champs sont déclarés
+ * optionnels et lus avec un repli (cf. `lib/sources/vigicrues.ts`).
+ */
 export interface VigicruesFeature {
   type: 'Feature';
   geometry: {
@@ -17,9 +27,16 @@ export interface VigicruesFeature {
     coordinates: unknown[];
   };
   properties: {
-    NivSituVigiCruEnt: number;
-    CdEntVigiCru: string;
-    NomEntVigiCru: string;
+    /** Niveau de vigilance 1–4 (GeoJSON en service). */
+    NivInfViCr?: number;
+    /** Même niveau, nommage de l'API v1.1. */
+    NivSituVigiCruEnt?: number;
+    /** Code du tronçon : acronyme de territoire (« CO1 », « ML101 »), pas un département. */
+    CdEntCru?: string;
+    CdEntVigiCru?: string;
+    /** Libellé du tronçon (« Eure moyenne et aval »). */
+    lbentcru?: string;
+    NomEntVigiCru?: string;
     NomCoursEau?: string;
     [key: string]: unknown;
   };

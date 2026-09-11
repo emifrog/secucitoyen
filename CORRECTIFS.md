@@ -311,11 +311,33 @@ WCAG 2.1 A/AA sur 7 pages sans violation).
 - [x] README : structure du projet, stack (Next 15, Serwist), sources de données, compteurs, tests.
 - [x] PlanAction.md : statuts corrigés et renvoi vers ce fichier.
 
+### 3.8 Vigilance crues Vigicrues — CRITIQUE — corrigé le 11/09/2026
+
+Découvert en vérifiant le point « format réel des codes `CdEntVigiCru` » ci-dessous : la
+source Vigicrues n'avait jamais rien pu remonter, alors qu'elle est annoncée dans
+l'interface, les CGU et la politique de confidentialité, et qu'elle est l'une des deux
+seules sources autorisées à déclencher une notification push.
+
+- [x] **Noms de champs alignés sur le flux réel.** Le parseur lit désormais `NivInfViCr` / `CdEntCru` / `lbentcru`, avec repli sur `NivSituVigiCruEnt` / `CdEntVigiCru` / `NomEntVigiCru` (nommage de l'API v1.1) pour ne pas dépendre du millésime du service. Un tronçon dont le niveau est absent est ignoré explicitement, au lieu d'être traité comme vert.
+- [x] **Départements dérivés de la géométrie, plus par heuristique.** `scripts/build-vigicrues-departements.mjs` échantillonne 12 sommets par tronçon et les géocode en inverse par lot via api-adresse.data.gouv.fr, puis écrit `lib/data/vigicrues-troncons.json` (337 tronçons, 34 Ko, 96 départements couverts, 0 tronçon non résolu). Un code absent de la table reste sans département : l'alerte s'affiche au niveau national mais n'est jamais poussée.
+- [x] **Tronçons multi-départements.** 127 des 337 tronçons traversent plusieurs départements (l'Alagnon en traverse 3) : `VigicrueAlert` expose `departements[]`, le filtre départemental teste la liste complète, et l'agrégateur émet une alerte par département concerné afin que la notification atteigne tous les abonnés. Sans cela, seuls les abonnés du premier département auraient été prévenus.
+- [x] **Date du bulletin** (`DtHrInfoVigiCru`) propagée dans `updatedAt` à la place de l'heure de la requête.
+- [x] Tests réécrits sur des tronçons réels (`GA1` Gard, `GA9` Bouches-du-Rhône, `AL2` sur 3 départements) avec rechargement du module entre scénarios pour neutraliser le cache mémoire de 5 minutes ; couverture ajoutée pour le nommage v1.1 et pour un code inconnu. 190 tests au total.
+- [ ] Aucun tronçon n'était au-dessus du vert le 11/09/2026 (337 sur 337 au niveau 1) : la remontée d'une vraie vigilance crues n'a donc pas pu être observée en conditions réelles. À recontrôler lors du prochain épisode de crue.
+
 ---
 
 ## Vérifications à faire en production (non couvertes par l'audit)
 
-- [ ] État du service worker sur https://secucitoyen.vercel.app après déploiement de la Phase 1 (DevTools › Application › Service Workers : « activated » ; Cache Storage : `secours-fiches` = 14, `detail-pages` = 12). Avant la Phase 1, le worker n'était jamais enregistré : les abonnements push existants en base ont probablement tous été créés en développement, à vérifier.
-- [ ] Migration `004_secure_rls.sql` effectivement appliquée sur Supabase (le client anon ne doit rien lire dans `push_subscriptions`).
-- [ ] Format réel des codes `CdEntVigiCru` renvoyés par Vigicrues pour valider l'extraction du département (`app/api/vigicrues/route.ts:99-105`).
-- [ ] Relancer les tests Playwright (dernier rapport du 9 août).
+- [x] **Service worker en production vérifié le 11/09/2026** sur https://secucitoyen.vercel.app : état `activated`, page contrôlée par le worker, `sw.js` servi en 200. Caches : précache 63 entrées (dont `/` et `/offline`, aucun `.map`, pas de `app-build-manifest.json`), `secours-fiches` = 14, `detail-pages` = 17, `pages` = 2. Préchauffage complet en moins de 10 s après le premier chargement.
+- [ ] Abonnements push existants en base : **non vérifiable depuis ce poste**. Toute requête vers l'API Supabase portant une vraie clé expire sans réponse (une clé factice reçoit un 401 en 0,12 s, le domaine répond en 0,03 s) — blocage local (antivirus/proxy/DLP), déjà observé avec l'erreur « Failed to fetch » sur api.supabase.com lors de la migration 005. À exécuter dans l'éditeur SQL Supabase :
+  ```sql
+  select count(*) as total,
+         min(created_at) as premier, max(created_at) as dernier,
+         count(*) filter (where department_code is null) as sans_departement
+  from push_subscriptions;
+  ```
+  Des abonnements antérieurs au déploiement de la Phase 1 ont été créés alors que le worker ne s'enregistrait jamais en production : ils proviennent du développement et peuvent être purgés.
+- [ ] Migration `004_secure_rls.sql` effectivement appliquée sur Supabase (le client anon ne doit rien lire dans `push_subscriptions`) — même blocage réseau, à vérifier depuis l'éditeur SQL ou un autre poste.
+- [x] **Format des codes de tronçon Vigicrues vérifié le 11/09/2026 sur le flux réel — l'heuristique était fausse et la source entièrement inopérante.** Le GeoJSON (`/services/1/InfoVigiCru.geojson`, 337 tronçons) ne contient ni `CdEntVigiCru` ni `NivSituVigiCruEnt` : ces deux champs sont présents sur **0 tronçon**. Les noms réels sont `CdEntCru`, `NivInfViCr` et `lbentcru`. Conséquence : `parseNiveau(undefined)` renvoyait `vert` et **toutes les crues étaient silencieusement filtrées**, quel que soit le niveau réel. De plus les codes de tronçon sont des acronymes de territoire (`CO1` Corse, `NO50` Normandie, `ML101` Maine-Loire) : leurs deux premiers caractères ne sont jamais un numéro de département. Corrigé (voir 3.8).
+- [x] Tests Playwright relancés le 11/09/2026 : 142 passés, 8 ignorés, 0 échec sur les 3 projets.
